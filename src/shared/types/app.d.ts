@@ -131,6 +131,7 @@ interface ProfileItem {
   logo?: string
   supportUrl?: string
   globalMode?: boolean
+  customCss?: string
 }
 
 interface SubscriptionUserInfo {
