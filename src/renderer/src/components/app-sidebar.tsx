@@ -25,15 +25,7 @@ import {
 } from '@renderer/components/ui/sidebar'
 import OutboundModeSwitcher from '@renderer/components/sider/outbound-mode-switcher'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
-import UpdaterButton from '@renderer/components/updater/updater-button'
 import ConfigViewer from '@renderer/components/sider/config-viewer'
-
-interface AppSidebarProps {
-  latest?: {
-    version: string
-    changelog: string
-  }
-}
 
 const navItems = [
   { key: 'main', path: '/home', icon: HomeIcon, i18nKey: 'sider.home' },
@@ -47,7 +39,7 @@ const navItems = [
 
 const allowedWithoutProfiles = new Set(['main', 'profile', 'settings'])
 
-const AppSidebar: React.FC<AppSidebarProps> = ({ latest }) => {
+const AppSidebar: React.FC = () => {
   const { t } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
@@ -102,7 +94,6 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ latest }) => {
       <SidebarFooter>
         <div className="flex flex-col items-center gap-2">
           {hasProfiles && globalModeAllowed && <OutboundModeSwitcher />}
-          {latest && latest.version && <UpdaterButton iconOnly={collapsed} latest={latest} />}
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton tooltip={t('common.toggleSidebar')} onClick={toggleSidebar} className="cursor-pointer">

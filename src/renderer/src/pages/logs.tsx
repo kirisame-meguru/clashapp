@@ -21,6 +21,7 @@ const Logs: React.FC = () => {
   const traceRef = useRef(trace)
 
   const virtuosoRef = useRef<VirtuosoHandle>(null)
+  const isInitialRef = useRef(true)
   const filteredLogs = useMemo(() => {
     if (filter === '') return logs
     return logs.filter((log) => {
@@ -43,10 +44,11 @@ const Logs: React.FC = () => {
     if (!trace) return
     virtuosoRef.current?.scrollToIndex({
       index: filteredLogs.length - 1,
-      behavior: 'smooth',
+      behavior: isInitialRef.current ? 'auto' : 'smooth',
       align: 'end',
       offset: 0
     })
+    isInitialRef.current = false
   }, [filteredLogs, trace])
 
   useEffect(() => {
@@ -95,7 +97,7 @@ const Logs: React.FC = () => {
         <Virtuoso
           ref={virtuosoRef}
           data={filteredLogs}
-          initialTopMostItemIndex={filteredLogs.length - 1}
+          initialItemCount={Math.min(filteredLogs.length, 15)}
           followOutput={trace}
           itemContent={(i, log) => {
             return (

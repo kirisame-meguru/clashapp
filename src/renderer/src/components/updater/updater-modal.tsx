@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
   DialogHeader,
@@ -10,7 +11,7 @@ import { Button } from '@renderer/components/ui/button'
 import { Progress } from '@renderer/components/ui/progress'
 import { Spinner } from '@renderer/components/ui/spinner'
 import ReactMarkdown from 'react-markdown'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { downloadAndInstallUpdate } from '@renderer/utils/ipc'
 import { useTranslation } from 'react-i18next'
 import { Download, X } from 'lucide-react'
@@ -31,6 +32,11 @@ const UpdaterModal: React.FC<Props> = (props) => {
   const { t } = useTranslation()
   const { version, changelog, updateStatus, onCancel, onClose } = props
   const [downloading, setDownloading] = useState(false)
+  const closeRef = useRef<HTMLButtonElement>(null)
+
+  const closeWithAnimation = (): void => {
+    closeRef.current?.click()
+  }
   const onUpdate = async (): Promise<void> => {
     try {
       setDownloading(true)
@@ -45,7 +51,7 @@ const UpdaterModal: React.FC<Props> = (props) => {
       setDownloading(false)
       onCancel()
     } else {
-      onClose()
+      closeWithAnimation()
     }
   }
 
@@ -62,6 +68,7 @@ const UpdaterModal: React.FC<Props> = (props) => {
         className="h-[calc(100%-111px)] w-[calc(100%-100px)] max-w-none sm:max-w-none flex flex-col"
         showCloseButton={false}
       >
+        <DialogClose ref={closeRef} className="hidden" />
         <DialogHeader className="app-drag flex-row items-center justify-between">
           <DialogTitle className="flex items-center gap-2">
             <Download className="text-lg" />

@@ -40,7 +40,7 @@ export default {
     settings: 'Настройки',
     hideSidebar: 'Скрыть',
     toggleSidebar: 'Раскрыть',
-    updateAvailable: 'Обновление',
+    updateAvailable: 'Обновить',
     loading: 'Загрузка...'
   },
 
@@ -854,7 +854,7 @@ export default {
   },
 
   updater: {
-    versionReady: 'Версия {{version}} готова',
+    versionReady: 'Версия {{version}} доступна',
     goToDownload: 'Перейти к загрузке',
     downloadProgress: 'Прогресс загрузки',
     cancelDownload: 'Отменить загрузку',

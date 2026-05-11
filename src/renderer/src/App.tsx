@@ -18,6 +18,7 @@ import useSWR from 'swr'
 import ConfirmModal from '@renderer/components/base/base-confirm'
 import { SidebarProvider } from '@renderer/components/ui/sidebar'
 import AppSidebar from '@renderer/components/app-sidebar'
+import UpdateBanner from '@renderer/components/updater/update-banner'
 import HwidLimitAlert from '@renderer/components/profiles/hwid-limit-alert'
 import WindowControls from '@renderer/components/window-controls'
 import mapDark from '@renderer/assets/map_darktheme.svg'
@@ -242,8 +243,11 @@ const App: React.FC = () => {
           <WindowControls />
         </div>
       )}
-      <AppSidebar latest={latest} />
-      <div className="relative z-10 main grow h-full overflow-y-auto">{page}</div>
+      <AppSidebar />
+      {latest?.version && <UpdateBanner latest={latest} />}
+      <div className="relative z-10 main grow h-full overflow-y-auto">
+        {page}
+      </div>
     </SidebarProvider>
   )
 }
