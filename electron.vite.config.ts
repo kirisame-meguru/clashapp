@@ -24,6 +24,12 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()]
   },
   renderer: {
+    // Pin the dev server to IPv4. On Windows `localhost` resolves to IPv6 `::1`
+    // first; if Vite binds only to `::1`, Electron's `http://localhost:5173`
+    // (which resolves to 127.0.0.1) gets ERR_CONNECTION_REFUSED -> white screen.
+    server: {
+      host: '127.0.0.1'
+    },
     build: {
       rollupOptions: {
         input: {
