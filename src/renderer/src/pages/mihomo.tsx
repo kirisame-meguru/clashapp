@@ -19,6 +19,7 @@ import PermissionModal from '@renderer/components/mihomo/permission-modal'
 import ServiceModal from '@renderer/components/mihomo/service-modal'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
 import PortSetting from '@renderer/components/mihomo/port-setting'
 import { platform } from '@renderer/utils/init'
 import PubSub from 'pubsub-js'
@@ -72,6 +73,7 @@ getSystemCorePaths().catch(() => {})
 
 const Mihomo: React.FC = () => {
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
   const { appConfig, patchAppConfig } = useAppConfig()
   const { core = 'mihomo', maxLogDays = 7, corePermissionMode = 'elevated' } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
@@ -318,6 +320,7 @@ const Mihomo: React.FC = () => {
             ) : null
           }
           divider
+          {...track('core')}
         >
           <Select
             value={core}
@@ -374,7 +377,7 @@ const Mihomo: React.FC = () => {
             )}
           </SettingItem>
         )}
-        <SettingItem title={t('pages.mihomo.runningMode')} divider>
+        <SettingItem title={t('pages.mihomo.runningMode')} divider {...track('corePermissionMode')}>
           <Tabs value={corePermissionMode} onValueChange={handlePermissionModeChange}>
             <TabsList>
               <TabsTrigger value="elevated">
@@ -401,13 +404,13 @@ const Mihomo: React.FC = () => {
             {t('pages.mihomo.manage')}
           </Button>
         </SettingItem>
-        <SettingItem title="IPv6" divider>
+        <SettingItem title="IPv6" divider {...track('ipv6')}>
           <Switch
             checked={ipv6}
             onCheckedChange={(v) => onChangeNeedRestart({ ipv6: v })}
           />
         </SettingItem>
-        <SettingItem title={t('pages.mihomo.logRetentionDays')} divider>
+        <SettingItem title={t('pages.mihomo.logRetentionDays')} divider {...track('maxLogDays')}>
           <Input
             type="number"
             className="h-8 w-[100px]"
@@ -417,7 +420,7 @@ const Mihomo: React.FC = () => {
             }
           />
         </SettingItem>
-        <SettingItem title={t('pages.mihomo.logLevel')}>
+        <SettingItem title={t('pages.mihomo.logLevel')} {...track('log-level')}>
           <Select
             value={logLevel}
             onValueChange={(value) => onChangeNeedRestart({ 'log-level': value as LogLevel })}

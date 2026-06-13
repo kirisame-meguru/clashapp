@@ -7,30 +7,42 @@ import { Switch } from '@renderer/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@renderer/components/ui/tabs'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { triggerSysProxy, updateTrayIcon, mihomoHotReloadConfig } from '@renderer/utils/ipc'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Settings } from 'lucide-react'
 
 const ProxySwitches: React.FC = () => {
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
   const navigate = useNavigate()
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { tun } = controledMihomoConfig || {}
   const { appConfig, patchAppConfig } = useAppConfig()
+  const { profileConfig } = useProfileConfig()
   const {
     sysProxy,
     proxyMode = false,
     onlyActiveDevice = false,
-    mainSwitchMode = 'tun'
+    mainSwitchMode = 'tun',
+    globalModeToggle = false
   } = appConfig || {}
   const { enable: writeSysProxy = true, mode } = sysProxy || {}
   const { 'mixed-port': mixedPort } = controledMihomoConfig || {}
   const sysProxyDisabled = mixedPort == 0
 
+  const currentProfile = useMemo(() => {
+    if (!profileConfig?.current || !profileConfig?.items) return null
+    return profileConfig.items.find((item) => item.id === profileConfig.current) ?? null
+  }, [profileConfig])
+  const globalModeAllowed = currentProfile?.globalMode !== false
+
   return (
     <SettingCard>
-      <SettingItem title={t('settings.advanced.mainSwitch')} divider>
+      <SettingItem title={t('settings.advanced.mainSwitch')} divider {...track('mainSwitchMode')}>
         <Tabs
           value={mainSwitchMode}
           onValueChange={(value) => {
@@ -55,6 +67,7 @@ const ProxySwitches: React.FC = () => {
           </Button>
         }
         divider
+        {...track('tun.enable')}
       >
         <Switch
           checked={tun?.enable}
@@ -81,6 +94,8 @@ const ProxySwitches: React.FC = () => {
             <Settings className="text-lg" />
           </Button>
         }
+        divider
+        {...track('proxyMode')}
       >
         <Switch
           checked={proxyMode}
@@ -107,6 +122,15 @@ const ProxySwitches: React.FC = () => {
             } catch (e) {
               toast.error(`${e}`)
             }
+          }}
+        />
+      </SettingItem>
+      <SettingItem title={t('settings.advanced.globalMode')} {...track('globalModeToggle')}>
+        <Switch
+          checked={globalModeToggle}
+          disabled={!globalModeAllowed}
+          onCheckedChange={async (enable: boolean) => {
+            await patchAppConfig({ globalModeToggle: enable })
           }}
         />
       </SettingItem>

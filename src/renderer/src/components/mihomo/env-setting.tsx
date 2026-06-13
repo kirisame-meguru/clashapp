@@ -5,6 +5,8 @@ import SettingItem from '../base/base-setting-item'
 import { Button } from '@renderer/components/ui/button'
 import { Switch } from '@renderer/components/ui/switch'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
+import { useFocusedCard } from '@renderer/hooks/use-setting-focus'
 import { restartCore } from '@renderer/utils/ipc'
 import EditableList from '../base/base-list-editor'
 import { platform } from '@renderer/utils/init'
@@ -12,6 +14,8 @@ import { useTranslation } from 'react-i18next'
 
 const EnvSetting: React.FC = () => {
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
+  const focusedCard = useFocusedCard()
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
     disableLoopbackDetector,
@@ -33,8 +37,11 @@ const EnvSetting: React.FC = () => {
   const [safePathsInput, setSafePathsInput] = useState(safePaths)
 
   return (
-    <SettingCard title={t('mihomo.envSettings.environmentVariables')}>
-      <SettingItem title={t('mihomo.envSettings.disableSystemCA')} divider>
+    <SettingCard
+      title={t('mihomo.envSettings.environmentVariables')}
+      defaultOpen={focusedCard === 'mihomo-env'}
+    >
+      <SettingItem title={t('mihomo.envSettings.disableSystemCA')} divider {...track('disableSystemCA')}>
         <Switch
           checked={disableSystemCA}
           onCheckedChange={(v) => {
@@ -42,7 +49,7 @@ const EnvSetting: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title={t('mihomo.envSettings.disableBuiltinCA')} divider>
+      <SettingItem title={t('mihomo.envSettings.disableBuiltinCA')} divider {...track('disableEmbedCA')}>
         <Switch
           checked={disableEmbedCA}
           onCheckedChange={(v) => {
@@ -50,7 +57,11 @@ const EnvSetting: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title={t('mihomo.envSettings.disableLoopbackDetection')} divider>
+      <SettingItem
+        title={t('mihomo.envSettings.disableLoopbackDetection')}
+        divider
+        {...track('disableLoopbackDetector')}
+      >
         <Switch
           checked={disableLoopbackDetector}
           onCheckedChange={(v) => {
@@ -59,7 +70,7 @@ const EnvSetting: React.FC = () => {
         />
       </SettingItem>
       {platform == 'linux' && (
-        <SettingItem title={t('mihomo.envSettings.disableNftables')} divider>
+        <SettingItem title={t('mihomo.envSettings.disableNftables')} divider {...track('disableNftables')}>
           <Switch
             checked={disableNftables}
             onCheckedChange={(v) => {
@@ -68,7 +79,7 @@ const EnvSetting: React.FC = () => {
           />
         </SettingItem>
       )}
-      <SettingItem title={t('mihomo.envSettings.trustedPath')}>
+      <SettingItem title={t('mihomo.envSettings.trustedPath')} {...track('safePaths')}>
         {safePathsInput.join('') != safePaths.join('') && (
           <Button
             size="sm"

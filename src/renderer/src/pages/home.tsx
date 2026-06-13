@@ -4,16 +4,30 @@ import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useGroups } from '@renderer/hooks/use-groups'
-import { triggerSysProxy, updateTrayIcon, mihomoHotReloadConfig } from '@renderer/utils/ipc'
+import {
+  triggerSysProxy,
+  updateTrayIcon,
+  mihomoHotReloadConfig,
+  patchMihomoConfig,
+  mihomoCloseAllConnections
+} from '@renderer/utils/ipc'
+import { Switch } from '@renderer/components/ui/switch'
 import NumberFlow from '@number-flow/react'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
-import Power from '@renderer/assets/on_icon.svg'
-import Pause from '@renderer/assets/pause_icon.svg'
-import { InfinityIcon, WifiOff, PlusCircle, ChevronRight, Globe, ArrowUp, ArrowDown, RefreshCcw } from 'lucide-react'
-import { SiTelegram } from 'react-icons/si'
+import {
+  WifiOff,
+  ChevronRight,
+  ArrowUp,
+  ArrowDown,
+  PowerIcon,
+  PauseIcon,
+  RefreshCcw,
+  MessageCircleQuestion
+} from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip'
 import EditInfoModal from '@renderer/components/profiles/edit-info-modal'
 import { Spinner } from '@renderer/components/ui/spinner'
 import { CharacterMorph } from '@renderer/components/ui/character-morph'
@@ -38,37 +52,26 @@ const Home: React.FC = () => {
     sysProxy,
     proxyMode = false,
     onlyActiveDevice = false,
+    autoCloseConnection = true,
+    globalModeToggle = false
   } = appConfig || {}
-  const { enable: writeSysProxy = true, mode } = sysProxy || {}
+  const { enable: writeSysProxy = true, mode: sysProxyMode } = sysProxy || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
-  const { tun } = controledMihomoConfig || {}
+  const { tun, mode: outboundMode = 'rule' } = controledMihomoConfig || {}
   const { 'mixed-port': mixedPort } = controledMihomoConfig || {}
   const sysProxyDisabled = mixedPort == 0
 
   const { profileConfig, addProfileItem } = useProfileConfig()
-  const { groups } = useGroups()
+  const { groups, mutate: mutateGroups } = useGroups()
   const navigate = useNavigate()
   const hasProfiles = (profileConfig?.items?.length ?? 0) > 0
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editingItem, setEditingItem] = useState<ProfileItem | null>(null)
-  const [updating, setUpdating] = useState(false)
-
-  const handleAddProfile = (): void => {
-    const newProfile: ProfileItem = {
-      id: '',
-      name: '',
-      type: 'remote',
-      url: '',
-      useProxy: false,
-      autoUpdate: true
-    }
-    setEditingItem(newProfile)
-    setShowEditModal(true)
-  }
 
   const trafficInfo = useTrafficStore((s) => s.traffic)
 
+  const [importOpen, setImportOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [modeLoading, setModeLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [loadingDirection, setLoadingDirection] = useState<'connecting' | 'disconnecting'>(
     'connecting'
   )
@@ -101,7 +104,10 @@ const Home: React.FC = () => {
 
   const isDisabled =
     loading ||
-    (mainSwitchMode === 'sysproxy' && writeSysProxy && mode == 'manual' && sysProxyDisabled)
+    (mainSwitchMode === 'sysproxy' &&
+      writeSysProxy &&
+      sysProxyMode == 'manual' &&
+      sysProxyDisabled)
 
   const status = loading
     ? loadingDirection === 'connecting'
@@ -127,43 +133,63 @@ const Home: React.FC = () => {
     return profileConfig.items.find((item) => item.id === profileConfig.current) ?? null
   }, [profileConfig])
 
-  const handleUpdateProfile = async (): Promise<void> => {
-    if (!currentProfile || updating) return
-    setUpdating(true)
-    try {
-      await addProfileItem(currentProfile)
-    } catch (e) {
-      toast.error(`${e}`)
-    } finally {
-      setUpdating(false)
-    }
-  }
-
   const subscription = currentProfile?.extra
   const trafficUsed = (subscription?.upload ?? 0) + (subscription?.download ?? 0)
   const trafficTotal = subscription?.total ?? 0
   const trafficRemaining = trafficTotal > 0 ? trafficTotal - trafficUsed : 0
   const expireTimestamp = subscription?.expire ?? 0
   const expireDate = expireTimestamp > 0 ? dayjs.unix(expireTimestamp).format('L') : t('pages.home.never')
-  const daysRemaining =
-    expireTimestamp > 0 ? Math.max(0, dayjs.unix(expireTimestamp).diff(dayjs(), 'day')) : 0
 
   const firstGroup = groups?.[0]
   const supportUrl = currentProfile?.supportUrl
-  const supportLinkInfo = useMemo(() => {
-    if (!supportUrl) return null
+  const supportHref = useMemo(() => {
+    if (!supportUrl) return undefined
     try {
-      const parsed = new URL(supportUrl)
-      const normalized = `${parsed.hostname}${parsed.pathname}`.toLowerCase()
-      return {
-        href: parsed.toString(),
-        isTelegram:
-          parsed.protocol === 'tg:' || normalized.includes('t.me') || normalized.includes('telegram')
-      }
+      return new URL(supportUrl).toString()
     } catch {
-      return null
+      return undefined
     }
   }, [supportUrl])
+
+  // Global Mode toggle. Hidden unless the user opts in via Settings (globalModeToggle).
+  // The current profile may also forbid it (globalMode === false), in which case the
+  // toggle stays hidden; the backend also enforces this on profile change.
+  const globalModeAllowed = globalModeToggle && currentProfile?.globalMode !== false
+  const isGlobal = outboundMode === 'global'
+
+  const onToggleFull = async (enable: boolean): Promise<void> => {
+    if (modeLoading) return
+    setModeLoading(true)
+    const mode: OutboundMode = enable ? 'global' : 'rule'
+    try {
+      await patchControledMihomoConfig({ mode })
+      await patchMihomoConfig({ mode })
+      if (autoCloseConnection) {
+        await mihomoCloseAllConnections()
+      }
+      mutateGroups()
+      window.electron.ipcRenderer.send('updateTrayMenu')
+    } catch (e) {
+      toast.error(`${e}`)
+    } finally {
+      setModeLoading(false)
+    }
+  }
+
+  const onRefreshSubscription = async (): Promise<void> => {
+    if (!currentProfile || currentProfile.type !== 'remote' || refreshing) return
+    setRefreshing(true)
+    try {
+      const result = await addProfileItem(currentProfile)
+      if (result === 'updated') {
+        toast.success(t('profile.updateSuccess', { name: currentProfile.name }))
+      } else if (result === 'unchanged') {
+        toast.info(t('profile.updateNoChange', { name: currentProfile.name }))
+      }
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   const onValueChange = async (enable: boolean): Promise<void> => {
     setLoading(true)
@@ -174,7 +200,7 @@ const Home: React.FC = () => {
           await patchControledMihomoConfig({ tun: { enable: true }, dns: { enable: true } })
           await mihomoHotReloadConfig()
         } else {
-          if (writeSysProxy && mode == 'manual' && sysProxyDisabled) return
+          if (writeSysProxy && sysProxyMode == 'manual' && sysProxyDisabled) return
           await patchAppConfig({ proxyMode: true })
           await mihomoHotReloadConfig()
           if (writeSysProxy) {
@@ -209,111 +235,122 @@ const Home: React.FC = () => {
 
   return (
     <BasePage>
+      {importOpen && (
+        <EditInfoModal
+          item={{ id: '', type: 'remote', name: '' } as ProfileItem}
+          isCurrent={false}
+          updateProfileItem={addProfileItem}
+          onClose={() => setImportOpen(false)}
+          hideAdvanced
+        />
+      )}
       {!hasProfiles ? (
         <div className="h-full w-full flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4 max-w-75 rounded-2xl border border-stroke bg-card/50 backdrop-blur-xl p-8">
+          <div className="flex flex-col items-center gap-4 max-w-75 p-7 text-center">
             <WifiOff className="size-16 text-muted-foreground" />
-            <h2 className="text-xl font-bold text-foreground">{t('pages.profiles.emptyTitle')}</h2>
-            <p className="text-sm font-medium text-muted-foreground text-center">
-              {t('pages.profiles.emptyDescription')}
+            <h2 className="text-xl font-semibold text-foreground">{t('pages.profiles.emptyTitle')}</h2>
+            <p className="text-sm font-normal text-muted-foreground text-center">
+              {t('pages.profiles.emptyContinue')}
+              <br />
+              {t('pages.profiles.emptyOr')}
+              <button
+                type="button"
+                className="underline underline-offset-2 hover:text-foreground transition-colors"
+                onClick={() => setImportOpen(true)}
+              >
+                {t('pages.profiles.emptyPasteLink')}
+              </button>
             </p>
-            <button
-              onClick={handleAddProfile}
-              data-guide="home-add-profile-btn"
-              className="flex items-center gap-2 rounded-xl border border-stroke bg-gradient-start-power-on/50 backdrop-blur-xl px-6 py-3 text-foreground hover:bg-gradient-start-power-on/40 transition-colors"
-            >
-              <PlusCircle className="size-5" />
-              <span className="text-sm font-medium">{t('pages.profiles.addProfile')}</span>
-            </button>
           </div>
-          {showEditModal && editingItem && (
-            <EditInfoModal
-              item={editingItem}
-              isCurrent={false}
-              updateProfileItem={async (item: ProfileItem) => {
-                await addProfileItem(item)
-                setShowEditModal(false)
-                setEditingItem(null)
-              }}
-              onClose={() => {
-                setShowEditModal(false)
-                setEditingItem(null)
-              }}
-            />
-          )}
         </div>
       ) : (
-        <div className="flex flex-col h-full px-2 pb-2 gap-3">
-          {/* Profile card */}
+        <div className="grid h-full grid-rows-[auto_minmax(0,1fr)_auto] px-3 pb-3">
           {currentProfile && (
-            <div className="rounded-2xl border border-stroke bg-card/50 backdrop-blur-xl p-4">
+            <div className="relative z-10 px-0.5 pt-3">
               <div
                 data-guide="home-profile-header"
-                className="flex items-center justify-center gap-3"
+                className="flex min-w-0 items-center justify-center gap-3"
               >
                 {currentProfile.logo && (
                   <img
                     src={currentProfile.logo}
                     alt=""
-                    className="w-10 h-10 rounded-full"
+                    className="size-11 rounded-full object-cover shrink-0"
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = 'none'
                     }}
                   />
                 )}
-                <span className="font-medium text-base">{currentProfile.name}</span>
-                {currentProfile.type === 'remote' && (
-                  <button
-                    onClick={handleUpdateProfile}
-                    disabled={updating}
-                    className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50 cursor-pointer"
-                  >
-                    <RefreshCcw className={`size-4 ${updating ? 'animate-spin' : ''}`} />
-                  </button>
-                )}
+                <div className="min-w-0 text-center">
+                  <div>
+                    <div className="relative inline-block max-w-full align-middle">
+                      <div className="truncate text-xl font-semibold leading-tight text-foreground">
+                        {currentProfile.name}
+                      </div>
+                      {currentProfile.type === 'remote' && (
+                        <button
+                          type="button"
+                          title={t('common.refresh')}
+                          aria-label={t('common.refresh')}
+                          onClick={onRefreshSubscription}
+                          disabled={refreshing}
+                          className="absolute left-full top-1/2 ml-1.5 -translate-y-1/2 text-muted-foreground/80 transition-colors hover:text-foreground/90 disabled:opacity-60"
+                        >
+                          <RefreshCcw
+                            className={`size-4 ${refreshing ? 'animate-spin [animation-direction:reverse]' : ''}`}
+                          />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {supportHref && (
+                    <button
+                      data-guide="home-support-link"
+                      type="button"
+                      onClick={() => open(supportHref)}
+                      className="mt-1 text-[11px] font-medium text-muted-foreground/80 transition-colors hover:text-foreground/90"
+                    >
+                      support
+                    </button>
+                  )}
+                </div>
               </div>
               {currentProfile.announce && (
                 <div
                   data-guide="home-profile-announce"
-                  className="text-sm font-medium text-center mt-2 whitespace-pre-line"
+                  className="mt-2 text-center text-sm font-medium whitespace-pre-line text-foreground/90"
                 >
                   {currentProfile.announce}
                 </div>
               )}
-            </div>
-          )}
-          {/* Subscription info */}
-          {subscription && (
-            <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center rounded-2xl border border-stroke bg-card/50 backdrop-blur-xl p-1">
-              <div className="flex flex-col items-center py-2 px-1">
-                <span className="text-sm text-foreground">{t('pages.home.trafficRemaining')}</span>
-                <span className="font-bold text-base mt-0.5">
-                  {trafficTotal > 0 ? formatBytes(trafficRemaining) : <InfinityIcon />}
-                </span>
-              </div>
-              <div className="h-8 w-px bg-stroke" />
-              <div className="flex flex-col items-center py-2 px-1">
-                <span className="text-sm text-foreground">{t('pages.home.daysRemaining')}</span>
-                <span className="text-base font-bold mt-0.5">
-                  {expireTimestamp > 0 ? daysRemaining : <InfinityIcon />}
-                </span>
-              </div>
-              <div className="h-8 w-px bg-stroke" />
-              <div className="flex flex-col items-center py-2 px-1">
-                <span className="text-sm text-foreground">{t('pages.home.expires')}</span>
-                <span className="text-base font-bold mt-0.5">{expireDate}</span>
-              </div>
+              {subscription && (
+                <div className="mt-3 border-t border-stroke/65 pt-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col items-center gap-1 text-center">
+                      <span className="text-xs text-muted-foreground">
+                        {t('pages.home.trafficRemaining')}
+                      </span>
+                      <span className="text-base font-semibold text-foreground">
+                        {trafficTotal > 0 ? formatBytes(trafficRemaining) : t('pages.home.unlimited')}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center gap-1 text-center">
+                      <span className="text-xs text-muted-foreground">{t('pages.home.expires')}</span>
+                      <span className="text-base font-semibold text-foreground">{expireDate}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Connection button */}
-          <div className="flex flex-col grow-3 items-center justify-center min-h-0">
+          <div className="flex min-h-0 translate-y-[9px] flex-col items-center justify-center py-3">
             <div className="mb-3 flex h-6 items-center justify-center">
               <CharacterMorph
                 texts={[status]}
                 reserveTexts={statusWidthTexts}
                 interval={3000}
-                className="h-6 leading-none text-foreground font-semibold uppercase"
+                className="h-6 leading-none text-foreground font-semibold"
               />
             </div>
             <button
@@ -323,10 +360,10 @@ const Home: React.FC = () => {
               className="relative group transition-transform active:scale-95 cursor-pointer"
             >
               <div
-                className={`w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 bg-radial-[at_30%_45%] backdrop-blur-xl border-2 ${
+                className={`size-[7.5rem] rounded-full flex items-center justify-center transition-all duration-300 border backdrop-blur-2xl shadow-[0_18px_48px_rgba(217,70,239,0.18)] ${
                   isSelected
-                    ? 'from-gradient-start-power-on/60 to-gradient-end-power-on/60 border-stroke-power-on'
-                    : 'from-gradient-start-power-off/50 to-gradient-end-power-off/50 border-stroke-power-off'
+                    ? 'bg-linear-to-br from-gradient-start-power-on/80 to-gradient-end-power-on/80 border-stroke-power-on'
+                    : 'bg-foreground text-background border-foreground/30 hover:brightness-110'
                 } ${loading ? 'animate-none' : ''}`}
               >
                 <div className="relative size-16">
@@ -335,23 +372,54 @@ const Home: React.FC = () => {
                       loading ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
                     }`}
                   />
-                  <img
-                    src={Pause}
-                    alt=""
-                    className={`absolute inset-0 size-16 fill-foreground transition-all duration-300 ease-out ${
+                  <PauseIcon
+                    className={`absolute inset-0 size-16 stroke-[2.6] text-white transition-all duration-300 ease-out ${
                       !loading && isSelected ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
                     }`}
                   />
-                  <img
-                    src={Power}
-                    alt=""
-                    className={`absolute inset-0 size-16 fill-foreground transition-all duration-300 ease-out ${
+                  <PowerIcon
+                    className={`absolute inset-0 size-16 stroke-[2.6] transition-all duration-300 ease-out ${
                       !loading && !isSelected ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
                     }`}
                   />
                 </div>
               </div>
             </button>
+            {globalModeAllowed && (
+              <div
+                data-guide="home-full-toggle"
+                className="mt-4 flex items-center gap-2.5 rounded-full border border-stroke bg-card/50 backdrop-blur-xl pl-4 pr-2 py-1.5 shadow-sm"
+              >
+                <span
+                  onClick={() => !modeLoading && onToggleFull(!isGlobal)}
+                  className={`text-xs font-semibold tracking-wider text-foreground select-none ${
+                    modeLoading ? 'opacity-60' : 'cursor-pointer'
+                  }`}
+                >
+                  {t('pages.home.fullMode')}
+                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={t('pages.home.fullModeTooltip')}
+                      className="flex items-center text-muted-foreground/80 transition-colors hover:text-foreground cursor-help"
+                    >
+                      <MessageCircleQuestion className="size-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-[15rem]">
+                    {t('pages.home.fullModeTooltip')}
+                  </TooltipContent>
+                </Tooltip>
+                <Switch
+                  size="sm"
+                  checked={isGlobal}
+                  disabled={modeLoading}
+                  onCheckedChange={onToggleFull}
+                />
+              </div>
+            )}
             <div className="mt-3 h-8 flex items-center justify-center">
               <div
                 aria-hidden={!showConnectedTimer}
@@ -393,40 +461,23 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Group & Proxy selectors */}
-          {firstGroup && (
-            <div className="flag-emoji flex flex-col items-center mx-auto w-full max-w-3xs max-h-16">
-              <div
-                data-guide="home-group-selector"
-                className="w-full cursor-pointer"
-                onClick={() => navigate('/proxies', { state: { fromHome: true } })}
-              >
-                <div className="flex items-center justify-between h-9 rounded-2xl border border-stroke pl-3 pr-1 py-3 backdrop-blur-xl bg-card/50 transition-colors hover:bg-card/70">
-                  <div className="flag-emoji text-sm truncate max-w-52">
+          <div className="relative z-10 px-0.5 pt-3">
+            {firstGroup && (
+              <div className="border-t border-stroke/65 pt-2">
+                <button
+                  data-guide="home-group-selector"
+                  type="button"
+                  className="flex w-full items-center justify-center gap-2 py-2 text-center transition-colors hover:text-foreground/90"
+                  onClick={() => navigate('/proxies', { state: { fromHome: true } })}
+                >
+                  <div className="flag-emoji max-w-full truncate text-center text-sm font-medium text-foreground">
                     {firstGroup.now || firstGroup.name}
                   </div>
-                  <ChevronRight />
-                </div>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                </button>
               </div>
-            </div>
-          )}
-          {supportLinkInfo && (
-            <div className="flex justify-center text-sm text-muted-foreground">
-              <button
-                data-guide="home-support-link"
-                type="button"
-                onClick={() => open(supportLinkInfo.href)}
-                className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer"
-              >
-                {supportLinkInfo.isTelegram ? (
-                  <SiTelegram className="size-4" />
-                ) : (
-                  <Globe className="size-4" />
-                )}
-                <span>{t('pages.profiles.support')}</span>
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </BasePage>

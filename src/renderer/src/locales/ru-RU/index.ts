@@ -86,7 +86,7 @@ export default {
   sider: {
     home: 'Главная',
     proxyGroup: 'Группы прокси',
-    profileManagement: 'Профили',
+    profileManagement: 'Моя подписка',
     rules: 'Правила',
     connection: 'Подключения',
     logs: 'Логи',
@@ -167,8 +167,26 @@ export default {
       group: 'Группа:',
       proxy: 'Прокси:',
       noProfile: 'Нет активного профиля',
-      unlimited: 'Безлимит',
-      never: 'Никогда'
+      unlimited: 'Без лимита',
+      never: 'Никогда',
+      fullMode: 'Глобальный',
+      fullModeTooltip:
+        'Пропускать ВСЁ через VPN, даже локальные/государственные сайты (крайне, КРАЙНЕ нежелательно!)',
+      settingsChangedHint: 'Некоторые параметры изменены, нажмите чтобы просмотреть'
+    },
+    changedSettings: {
+      title: 'Изменённые параметры',
+      noChanges: 'Все параметры имеют значения по умолчанию',
+      current: 'Текущее',
+      default: 'По умолчанию',
+      defaultLabel: 'По умолчанию: {{value}}',
+      on: 'Включено',
+      off: 'Отключено',
+      empty: 'пусто',
+      entries: '{{count}} записей',
+      warningTitle: 'Неподдерживаемые настройки',
+      warningBody:
+        'Некоторые настройки не поддерживаются сервисами Bitumi. Ожидайте проблемы с подключением и самый низкий приоритет от нашей команды поддержки.'
     },
     settings: {
       title: 'Настройки приложения',
@@ -177,7 +195,7 @@ export default {
       officialDocs: 'Официальная документация'
     },
     profiles: {
-      title: 'Профили',
+      title: 'Моя подписка',
       updateAll: 'Обновить все профили',
       profileSettings: 'Настройки профиля',
       openLocalConfig: 'Открыть локальный конфиг',
@@ -188,8 +206,12 @@ export default {
       unsupportedFileType: 'Неподдерживаемый тип файла',
       checkUpdate: 'Проверить обновления',
       openInBrowser: 'Открыть в браузере',
-      emptyTitle: 'Профилей пока нет',
-      emptyDescription: 'Добавьте профиль, чтобы начать',
+      emptyTitle: 'Профиля пока нет',
+      emptyDescription: 'Чтобы добавить профиль перейдите на страницу \'Моя подписка\'',
+      addSubscription: 'Добавить подписку',
+      emptyContinue: 'Продолжите следовать инструкциям',
+      emptyOr: 'или ',
+      emptyPasteLink: 'вставьте ссылку подписки вручную',
       addProfile: 'Добавить профиль',
       dropFileHint: 'Перетащите файл конфигурации сюда',
       hwidLimitTitle: 'Лимит устройств превышен',
@@ -230,7 +252,10 @@ export default {
     },
     logs: {
       title: 'Логи',
-      clearLogs: 'Очистить логи'
+      clearLogs: 'Очистить логи',
+      exportToDesktop: 'Сохранить логи на рабочий стол',
+      exportSuccess: 'На рабочем столе создан {{fileName}}',
+      openFile: 'Открыть'
     },
     rules: {
       title: 'Правила'
@@ -402,7 +427,7 @@ export default {
     pleaseConfirm: 'Подтвердите действие',
     confirmDelete: 'Подтвердить удаление',
     confirmImportProfile: 'Импортировать конфигурацию подписки?',
-    confirmQuit: 'Вы уверены, что хотите выйти из Koala Clash?',
+    confirmQuit: 'Вы уверены, что хотите выйти из Bitumi?',
     quitWarning: 'После выхода прокси перестанет работать',
     quickQuitHint: 'Нажмите дважды или удерживайте кнопку',
     canQuitDirectly: 'для быстрого выхода',
@@ -428,6 +453,15 @@ export default {
   },
 
   settings: {
+    tabs: {
+      title: 'Вкладки',
+      seeMore: 'Ещё',
+      enableConnections: 'Включить вкладку <icon/> «Соединения»',
+      enableRules: 'Включить вкладку <icon/> «Правила»',
+      enableLogs: 'Включить вкладку <icon/> «Журналы»',
+      enableProfiles: 'Включить вкладку <icon/> «Моя подписка»',
+      enableProxies: 'Включить вкладку <icon/> «Группы прокси»'
+    },
     general: {
       autoStart: 'Автозапуск',
       silentStart: 'Тихий запуск',
@@ -482,6 +516,7 @@ export default {
       mainSwitchTun: 'Режим TUN',
       mainSwitchSysproxy: 'Режим прокси',
       mainSwitchProxyMode: 'Режим прокси',
+      globalMode: 'Включить переключатель глобального режима',
       takeOverDNS: 'Управлять настройками DNS',
       takeOverSniffer: 'Управлять настройками определения доменов',
       stopCoreOnDisconnect: 'Останавливать ядро при потере сети',
@@ -639,7 +674,7 @@ export default {
       registerTaskSchedule: 'Зарегистрировать задачу'
     },
     serviceModal: {
-      title: 'Управление службой Koala Clash',
+      title: 'Управление службой Bitumi',
       serviceStatus: 'Состояние службы',
       connectionStatus: 'Состояние подключения',
       checking: 'Проверка',
@@ -729,6 +764,8 @@ export default {
     longTermValid: 'Действует бессрочно',
     homepage: 'Главная страница',
     support: 'Поддержка',
+    updateSuccess: 'Подписка «{{name}}» обновлена',
+    updateNoChange: 'Подписка «{{name}}» уже актуальна',
     showDate: 'Показывать дату',
     subscriptionUA: 'User-Agent для обновления подписки',
     dateUpdated: 'Время обновления',
@@ -948,7 +985,7 @@ export default {
       'Нажмите на иконку «Главная», чтобы вернуться на главную страницу.',
     supportTitle: 'Поддержка',
     supportDesc: 'Нажмите, чтобы связаться с поддержкой провайдера.',
-    welcome: 'Добро пожаловать в Koala Clash',
+    welcome: 'Добро пожаловать в Bitumi',
     welcomeDesc:
       'Краткое руководство поможет быстро разобраться в приложении. Нажмите «Далее», чтобы начать.',
     navbar: 'Панель навигации',
@@ -960,7 +997,7 @@ export default {
     mainArea: 'Рабочая область',
     mainAreaDesc:
       'Основная область для просмотра и редактирования настроек.',
-    profileManagement: 'Профили',
+    profileManagement: 'Моя подписка',
     profileManagementDesc:
       'Карточка профиля показывает текущую подписку. Нажмите, чтобы перейти к управлению. Правый клик — быстрое переключение профилей.',
     profileImport: 'Импорт подписки',

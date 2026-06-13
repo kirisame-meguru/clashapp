@@ -10,6 +10,7 @@ import SettingItem from '@renderer/components/base/base-setting-item'
 import EditableList from '@renderer/components/base/base-list-editor'
 import PacEditorModal from '@renderer/components/sysproxy/pac-editor-modal'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
 import { platform } from '@renderer/utils/init'
 import { openUWPTool, triggerSysProxy } from '@renderer/utils/ipc'
 import React, { useEffect, useState } from 'react'
@@ -72,6 +73,7 @@ const Sysproxy: React.FC = () => {
           ]
 
   const { appConfig, patchAppConfig } = useAppConfig()
+  const { track } = useChangedSettings()
   const {
     sysProxy,
     proxyMode = false,
@@ -174,13 +176,13 @@ const Sysproxy: React.FC = () => {
         />
       )}
       <SettingCard className="sysproxy-settings">
-        <SettingItem title={t('pages.sysproxy.systemProxyToggle')} divider>
+        <SettingItem title={t('pages.sysproxy.systemProxyToggle')} divider {...track('sysProxy.enable')}>
           <Switch
             checked={values.enable}
             onCheckedChange={(v) => onToggleSysProxy(v)}
           />
         </SettingItem>
-        <SettingItem title={t('pages.sysproxy.proxyHost')} divider>
+        <SettingItem title={t('pages.sysproxy.proxyHost')} divider {...track('sysProxy.host')}>
           <Input
             className="w-[50%]"
             value={values.host}
@@ -190,7 +192,7 @@ const Sysproxy: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title={t('pages.sysproxy.proxyMode')} divider>
+        <SettingItem title={t('pages.sysproxy.proxyMode')} divider {...track('sysProxy.mode')}>
           <Tabs
             value={values.mode}
             onValueChange={(value) => setValues({ ...values, mode: value as SysProxyMode })}
@@ -215,7 +217,7 @@ const Sysproxy: React.FC = () => {
         )}
         {platform == 'darwin' && (
           <>
-            <SettingItem title={t('pages.sysproxy.settingMethod')} divider>
+            <SettingItem title={t('pages.sysproxy.settingMethod')} divider {...track('sysProxy.settingMode')}>
               <Tabs
                 value={values.settingMode}
                 onValueChange={(value) => {
@@ -243,6 +245,7 @@ const Sysproxy: React.FC = () => {
                 </Tooltip>
               }
               divider
+              {...track('onlyActiveDevice')}
             >
               <Switch
                 checked={onlyActiveDevice}
@@ -255,7 +258,7 @@ const Sysproxy: React.FC = () => {
           </>
         )}
         {values.mode === 'auto' && (
-          <SettingItem title={t('pages.sysproxy.proxyMode')}>
+          <SettingItem title={t('pages.sysproxy.editPACScript')} {...track('sysProxy.pacScript')}>
             <Button size="sm" onClick={() => setOpenPacEditor(true)}>
               {t('pages.sysproxy.editPACScript')}
             </Button>
@@ -291,6 +294,7 @@ const Sysproxy: React.FC = () => {
               onChange={(list) => setValues({ ...values, bypass: list as string[] })}
               placeholder={t('pages.sysproxy.exampleBypass')}
               divider={false}
+              {...track('sysProxy.bypass')}
             />
           </>
         )}

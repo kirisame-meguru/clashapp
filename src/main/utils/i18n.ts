@@ -32,7 +32,7 @@ const zhCN: LocaleTranslations = {
     ruleMode: '规则模式',
     globalMode: '全局模式',
     directMode: '直连模式',
-    subscriptionConfig: '订阅配置',
+    subscriptionConfig: '我的订阅',
     openDirectory: '打开目录',
     appDirectory: '应用目录',
     workDirectory: '工作目录',
@@ -48,7 +48,7 @@ const zhCN: LocaleTranslations = {
   },
   menu: {
     about: '关于',
-    aboutApp: '关于 Koala Clash',
+    aboutApp: '关于 Bitumi',
     hide: '隐藏',
     hideOthers: '隐藏其他',
     showAll: '显示全部',
@@ -97,7 +97,12 @@ const zhCN: LocaleTranslations = {
     appInitFailed: '应用初始化失败',
     coreStartError: '内核启动出错',
     profileImportFailed: '订阅导入失败',
-    selectSubscriptionFile: '选择订阅文件'
+    selectSubscriptionFile: '选择订阅文件',
+    updateAvailable: '发现新版本',
+    currentVersion: '当前版本',
+    latestVersion: '最新版本',
+    downloadUpdate: '下载更新',
+    later: '稍后'
   },
   error: {
     missingUrlParam: '缺少参数 url',
@@ -171,7 +176,7 @@ const enUS: LocaleTranslations = {
     ruleMode: 'Rule Mode',
     globalMode: 'Global Mode',
     directMode: 'Direct Mode',
-    subscriptionConfig: 'Profiles',
+    subscriptionConfig: 'My Subscription',
     openDirectory: 'Open Directory',
     appDirectory: 'App Directory',
     workDirectory: 'Work Directory',
@@ -188,7 +193,7 @@ const enUS: LocaleTranslations = {
   },
   menu: {
     about: 'About',
-    aboutApp: 'About Koala Clash',
+    aboutApp: 'About Bitumi',
     hide: 'Hide',
     hideOthers: 'Hide Others',
     showAll: 'Show All',
@@ -237,7 +242,12 @@ const enUS: LocaleTranslations = {
     appInitFailed: 'Application initialization failed',
     coreStartError: 'Core startup error',
     profileImportFailed: 'Profile import failed',
-    selectSubscriptionFile: 'Select subscription file'
+    selectSubscriptionFile: 'Select subscription file',
+    updateAvailable: 'Update available',
+    currentVersion: 'Current version',
+    latestVersion: 'Latest version',
+    downloadUpdate: 'Download update',
+    later: 'Later'
   },
   error: {
     missingUrlParam: 'Missing parameter: url',
@@ -311,7 +321,7 @@ const ruRU: LocaleTranslations = {
     ruleMode: 'Режим правил',
     globalMode: 'Глобальный режим',
     directMode: 'Прямой режим',
-    subscriptionConfig: 'Профили',
+    subscriptionConfig: 'Моя подписка',
     openDirectory: 'Открыть папку',
     appDirectory: 'Папка приложения',
     workDirectory: 'Рабочая папка',
@@ -328,7 +338,7 @@ const ruRU: LocaleTranslations = {
   },
   menu: {
     about: 'О программе',
-    aboutApp: 'О Koala Clash',
+    aboutApp: 'О Bitumi',
     hide: 'Скрыть',
     hideOthers: 'Скрыть остальные',
     showAll: 'Показать все',
@@ -377,7 +387,12 @@ const ruRU: LocaleTranslations = {
     appInitFailed: 'Ошибка инициализации приложения',
     coreStartError: 'Ошибка запуска ядра',
     profileImportFailed: 'Ошибка импорта подписки',
-    selectSubscriptionFile: 'Выберите файл подписки'
+    selectSubscriptionFile: 'Выберите файл подписки',
+    updateAvailable: 'Доступно обновление',
+    currentVersion: 'Текущая версия',
+    latestVersion: 'Новая версия',
+    downloadUpdate: 'Скачать обновление',
+    later: 'Позже'
   },
   error: {
     missingUrlParam: 'Отсутствует параметр: url',

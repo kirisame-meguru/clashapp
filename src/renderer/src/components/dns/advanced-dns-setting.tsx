@@ -5,8 +5,11 @@ import EditableList from '../base/base-list-editor'
 import { Switch } from '@renderer/components/ui/switch'
 import { isValidDnsServer, isValidDomainWildcard } from '@renderer/utils/validate'
 import { useTranslation } from 'react-i18next'
+import type { TrackProps } from '@renderer/hooks/use-changed-settings'
+import { useFocusedCard } from '@renderer/hooks/use-setting-focus'
 
 interface AdvancedDnsSettingProps {
+  track?: (id: string) => TrackProps
   respectRules: boolean
   directNameserver: string[]
   proxyServerNameserver: string[]
@@ -25,6 +28,7 @@ interface AdvancedDnsSettingProps {
 }
 
 const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
+  track = (id) => ({ highlight: false, anchorId: `setting-${id}` }),
   respectRules,
   directNameserver,
   proxyServerNameserver,
@@ -42,6 +46,7 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
   onErrorChange
 }) => {
   const { t } = useTranslation()
+  const focusedCard = useFocusedCard()
   const [directNameserverError, setDirectNameserverError] = useState<string | null>(null)
   const [proxyNameserverError, setProxyNameserverError] = useState<string | null>(null)
   const [nameserverPolicyError, setNameserverPolicyError] = useState<string | null>(null)
@@ -61,8 +66,8 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
   ])
 
   return (
-    <SettingCard title={t('dns.moreSettings')}>
-      <SettingItem title={t('dns.connectionRespectRules')} divider>
+    <SettingCard title={t('dns.moreSettings')} defaultOpen={focusedCard === 'dns-advanced'}>
+      <SettingItem title={t('dns.connectionRespectRules')} divider {...track('dns.respect-rules')}>
         <Switch
           checked={respectRules}
           disabled={proxyServerNameserver.length === 0}
@@ -71,6 +76,7 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
       </SettingItem>
       <EditableList
         title={t('dns.directResolver')}
+        {...track('dns.direct-nameserver')}
         items={directNameserver}
         validate={(part) => isValidDnsServer(part as string)}
         onChange={(list) => {
@@ -85,6 +91,7 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
       />
       <EditableList
         title={t('dns.proxyNodeResolver')}
+        {...track('dns.proxy-server-nameserver')}
         items={proxyServerNameserver}
         validate={(part) => isValidDnsServer(part as string)}
         onChange={(list) => {
@@ -100,6 +107,7 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
 
       <EditableList
         title={t('dns.domainResolutionPolicy')}
+        {...track('dns.nameserver-policy')}
         items={nameserverPolicy}
         validatePart1={(part1) => isValidDomainWildcard(part1)}
         validatePart2={(part2) => {
@@ -161,14 +169,15 @@ const AdvancedDnsSetting: React.FC<AdvancedDnsSettingProps> = ({
         part2Placeholder={t('dns.dnsServerCommaSeparated')}
         objectMode="record"
       />
-      <SettingItem title={t('dns.useSystemHosts')} divider>
+      <SettingItem title={t('dns.useSystemHosts')} divider {...track('dns.use-system-hosts')}>
         <Switch checked={useSystemHosts} onCheckedChange={onUseSystemHostsChange} />
       </SettingItem>
-      <SettingItem title={t('dns.customHosts')}>
+      <SettingItem title={t('dns.customHosts')} {...track('dns.use-hosts')}>
         <Switch checked={useHosts} onCheckedChange={onUseHostsChange} />
       </SettingItem>
       {useHosts && (
         <EditableList
+          {...track('hosts')}
           items={hosts ? Object.fromEntries(hosts.map((h) => [h.domain, h.value])) : {}}
           validatePart1={(part1) => isValidDomainWildcard(part1)}
           onChange={(rec) => {

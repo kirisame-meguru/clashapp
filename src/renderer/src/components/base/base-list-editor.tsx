@@ -9,6 +9,12 @@ import { Trash2 } from 'lucide-react'
 
 interface EditableListProps {
   title?: string
+  /** highlight the list as changed-from-default (yellow) */
+  highlight?: boolean
+  /** small subtext shown under the title, e.g. "Default: a, b, …" */
+  defaultHint?: React.ReactNode
+  /** DOM id for deep-link scroll targeting (e.g. "setting-<id>") */
+  anchorId?: string
   items:
     | string[]
     | Record<string, string | string[]>
@@ -28,6 +34,9 @@ interface EditableListProps {
 
 const EditableList: React.FC<EditableListProps> = ({
   title,
+  highlight = false,
+  defaultHint,
+  anchorId,
   items = [],
   onChange,
   placeholder = '',
@@ -117,8 +126,30 @@ const EditableList: React.FC<EditableListProps> = ({
 
   return (
     <>
-      <div className={`flex flex-col space-y-2 ${!title ? 'mt-2' : ''}`}>
-        {title && <h4 className="text-base font-medium">{title}</h4>}
+      <div
+        id={anchorId}
+        className={`flex flex-col space-y-2 ${
+          highlight
+            ? 'rounded-md bg-yellow-400/10 border-l-2 border-yellow-500/80 py-2 pl-3 pr-3 -mx-3'
+            : !title
+              ? 'mt-2'
+              : ''
+        }`}
+      >
+        {title && (
+          <h4
+            className={`text-base font-medium ${
+              highlight ? 'text-yellow-600 dark:text-yellow-400' : ''
+            }`}
+          >
+            {title}
+          </h4>
+        )}
+        {highlight && defaultHint && (
+          <span className="text-xs leading-tight text-yellow-600/90 dark:text-yellow-400/90">
+            {defaultHint}
+          </span>
+        )}
         {displayed.map((entry, idx) => {
           const disabled = disableFirst && idx === 0
           const isExtra = idx === processedItems.length

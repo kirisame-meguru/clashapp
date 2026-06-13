@@ -1,4 +1,3 @@
-import { Button } from '@renderer/components/ui/button'
 import BasePage from '@renderer/components/base/base-page'
 import GeneralConfig from '@renderer/components/settings/general-config'
 import AdvancedSettings from '@renderer/components/settings/advanced-settings'
@@ -7,8 +6,8 @@ import ShortcutConfig from '@renderer/components/settings/shortcut-config'
 import AppearanceConfig from '@renderer/components/settings/appearance-confis'
 import LanguageConfig from '@renderer/components/settings/language-config'
 import ProxySwitches from '@renderer/components/settings/proxy-switches'
+import TabSwitches from '@renderer/components/settings/tab-switches'
 import { useTranslation } from 'react-i18next'
-import { Github } from 'lucide-react'
 import { useState } from 'react'
 
 const Settings: React.FC = () => {
@@ -16,24 +15,8 @@ const Settings: React.FC = () => {
   const [showHiddenSettings, setShowHiddenSettings] = useState(false)
 
   return (
-    <BasePage
-      title={t('pages.settings.title')}
-      header={
-        <>
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            className="app-nodrag"
-            title={t('pages.settings.githubRepo')}
-            onClick={() => {
-              window.open('https://github.com/coolcoala/koala-clash')
-            }}
-          >
-            <Github className="text-lg" />
-          </Button>
-        </>
-      }
-    >
+    <BasePage title={t('pages.settings.title')}>
+      <TabSwitches />
       <ProxySwitches />
       <GeneralConfig showHiddenSettings={showHiddenSettings} />
       <LanguageConfig />

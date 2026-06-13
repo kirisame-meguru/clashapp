@@ -54,12 +54,13 @@ import {
   checkCorePermission
 } from '../core/manager'
 import { triggerSysProxy } from '../sys/sysproxy'
-import { checkUpdate, downloadAndInstallUpdate, cancelUpdate } from '../resolve/autoUpdater'
 import {
   checkElevateTask,
   deleteElevateTask,
+  exportLogsToDesktop,
   getFilePath,
   openFile,
+  openPath,
   openUWPTool,
   readTextFile,
   resetAppConfig,
@@ -225,11 +226,6 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('getRawProfileStr', ipcErrorWrapper(getRawProfileStr))
   ipcMain.handle('getCurrentProfileStr', ipcErrorWrapper(getCurrentProfileStr))
   ipcMain.handle('getRuntimeConfig', ipcErrorWrapper(getRuntimeConfig))
-  ipcMain.handle('downloadAndInstallUpdate', (_e, version) =>
-    ipcErrorWrapper(downloadAndInstallUpdate)(version)
-  )
-  ipcMain.handle('checkUpdate', ipcErrorWrapper(checkUpdate))
-  ipcMain.handle('cancelUpdate', ipcErrorWrapper(cancelUpdate))
   ipcMain.handle('getVersion', () => app.getVersion())
   ipcMain.handle('platform', () => process.platform)
   ipcMain.handle('openUWPTool', ipcErrorWrapper(openUWPTool))
@@ -265,12 +261,16 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('closeFloatingWindow', () => ipcErrorWrapper(closeFloatingWindow)())
   ipcMain.handle('showContextMenu', () => ipcErrorWrapper(showContextMenu)())
   ipcMain.handle('openFile', (_e, id) => openFile(id))
+  ipcMain.handle('openPath', (_e, target: string) => ipcErrorWrapper(openPath)(target))
   ipcMain.handle('openDevTools', () => {
     mainWindow?.webContents.openDevTools()
   })
   ipcMain.handle('createHeapSnapshot', () => {
     v8.writeHeapSnapshot(path.join(logDir(), `${Date.now()}.heapsnapshot`))
   })
+  ipcMain.handle('exportLogsToDesktop', (_e, logs: ControllerLog[]) =>
+    ipcErrorWrapper(exportLogsToDesktop)(logs)
+  )
   ipcMain.handle('getUserAgent', () => ipcErrorWrapper(getUserAgent)())
   ipcMain.handle('getAppName', (_e, appPath) => ipcErrorWrapper(getAppName)(appPath))
   ipcMain.handle('getImageDataURL', (_e, url) => ipcErrorWrapper(getImageDataURL)(url))
@@ -283,7 +283,7 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('applyTheme', (_e, theme) => ipcErrorWrapper(applyTheme)(theme))
   ipcMain.handle('copyEnv', (_e, type) => ipcErrorWrapper(copyEnv)(type))
   ipcMain.handle('alert', (_e, msg) => {
-    showError('Koala Clash', msg)
+    showError('Bitumi Clash', msg)
   })
   ipcMain.handle('resetAppConfig', resetAppConfig)
   ipcMain.handle('relaunchApp', () => {
@@ -307,18 +307,8 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('windowMinimize', () => {
     mainWindow?.minimize()
   })
-  ipcMain.handle('windowMaximize', () => {
-    if (mainWindow?.isMaximized()) {
-      mainWindow.unmaximize()
-    } else {
-      mainWindow?.maximize()
-    }
-  })
   ipcMain.handle('windowClose', () => {
     mainWindow?.close()
-  })
-  ipcMain.handle('windowIsMaximized', () => {
-    return mainWindow?.isMaximized() ?? false
   })
   ipcMain.handle('needsFirstRunAdmin', () => needsFirstRunAdmin)
   ipcMain.handle('restartAsAdmin', async () => {

@@ -29,8 +29,10 @@ import {
 interface Props {
   item: ProfileItem
   isCurrent: boolean
-  updateProfileItem: (item: ProfileItem) => Promise<void>
+  // Accepts the update handler or addProfileItem (import flow); the return value is ignored.
+  updateProfileItem: (item: ProfileItem) => Promise<unknown>
   onClose: () => void
+  hideAdvanced?: boolean
 }
 
 function isValidUrl(url: string): boolean {
@@ -44,7 +46,7 @@ function isValidUrl(url: string): boolean {
 
 const EditInfoModal: React.FC<Props> = (props) => {
   const { t } = useTranslation()
-  const { item, isCurrent, updateProfileItem, onClose } = props
+  const { item, isCurrent, updateProfileItem, onClose, hideAdvanced = false } = props
   const [values, setValues] = useState({ ...item, autoUpdate: item.autoUpdate ?? true })
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [urlTouched, setUrlTouched] = useState(false)
@@ -227,22 +229,24 @@ const EditInfoModal: React.FC<Props> = (props) => {
             )}
 
             {/* Advanced settings toggle */}
-            <button
-              type="button"
-              className="flex items-center gap-1.5 self-start text-xs text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-            >
-              <ChevronDown
-                className={cn(
-                  'size-3.5 transition-transform duration-200',
-                  showAdvanced && 'rotate-180'
-                )}
-              />
-              {t('profile.advancedSettings')}
-            </button>
+            {!hideAdvanced && (
+              <button
+                type="button"
+                className="flex items-center gap-1.5 self-start text-xs text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+              >
+                <ChevronDown
+                  className={cn(
+                    'size-3.5 transition-transform duration-200',
+                    showAdvanced && 'rotate-180'
+                  )}
+                />
+                {t('profile.advancedSettings')}
+              </button>
+            )}
 
-            {showAdvanced && (
-              <div className="rounded-xl border border-stroke/50 bg-accent/20 p-3 flex flex-col gap-2">
+            {!hideAdvanced && showAdvanced && (
+              <div className="rounded-lg border border-stroke/50 bg-accent/20 p-3 flex flex-col gap-2">
                 <SettingItem title={t('profile.profileType')}>
                   <div className="flex gap-1">
                     <Button
@@ -337,7 +341,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
           /* Edit existing profile */
           <div className="flex flex-col gap-3 overflow-y-auto max-h-[60vh]">
             {/* Identity */}
-            <div className="rounded-xl border border-stroke/50 bg-accent/20 p-3 flex flex-col gap-2">
+            <div className="rounded-lg border border-stroke/50 bg-accent/20 p-3 flex flex-col gap-2">
               <SettingItem title={t('profile.name')}>
                 <Input
                   className="h-8"
@@ -357,7 +361,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
             </div>
             {/* Remote settings */}
             {values.type === 'remote' && (
-              <div className="rounded-xl border border-stroke/50 bg-accent/20 p-3 flex flex-col gap-2">
+              <div className="rounded-lg border border-stroke/50 bg-accent/20 p-3 flex flex-col gap-2">
                 <SettingItem title={t('profile.customUA')}>
                   <Input
                     className="h-8"

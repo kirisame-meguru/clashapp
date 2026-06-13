@@ -7,6 +7,8 @@ import {
   DropdownMenuTrigger
 } from '@renderer/components/ui/dropdown-menu'
 import { cn } from '@renderer/lib/utils'
+import type { ProfileUpdateResult } from '@renderer/hooks/use-profile-config'
+import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { calcTraffic } from '@renderer/utils/calc'
 import dayjs from 'dayjs'
@@ -45,7 +47,7 @@ import {
 interface Props {
   info: ProfileItem
   isCurrent: boolean
-  addProfileItem: (item: Partial<ProfileItem>) => Promise<void>
+  addProfileItem: (item: Partial<ProfileItem>) => Promise<ProfileUpdateResult>
   updateProfileItem: (item: ProfileItem) => Promise<void>
   removeProfileItem: (id: string) => Promise<void>
   onClick: () => Promise<void>
@@ -188,7 +190,12 @@ const ProfileItem: React.FC<Props> = (props) => {
       case 'update': {
         setUpdating(true)
         try {
-          await addProfileItem(info)
+          const result = await addProfileItem(info)
+          if (result === 'updated') {
+            toast.success(t('profile.updateSuccess', { name: info.name }))
+          } else if (result === 'unchanged') {
+            toast.info(t('profile.updateNoChange', { name: info.name }))
+          }
         } finally {
           setUpdating(false)
         }
@@ -296,7 +303,7 @@ const ProfileItem: React.FC<Props> = (props) => {
           }
         }}
         className={cn(
-          'group relative rounded-2xl backdrop-blur-3xl border px-4 pt-3 pb-2 cursor-pointer transition-all duration-200',
+          'group glass-surface relative rounded-lg px-4 pt-3 pb-2 cursor-pointer transition-all duration-200',
           isCurrent
             ? 'border-stroke-profile-active bg-profile-active hover:bg-profile-active/90'
             : 'border-stroke-profile-inactive bg-profile-inactive hover:bg-accent/60',
@@ -333,7 +340,10 @@ const ProfileItem: React.FC<Props> = (props) => {
                   disabled={updating}
                 >
                   <RefreshCcw
-                    className={cn('text-base text-muted-foreground', updating && 'animate-spin')}
+                    className={cn(
+                      'text-base text-muted-foreground',
+                      updating && 'animate-spin [animation-direction:reverse]'
+                    )}
                   />
                 </Button>
               )}

@@ -85,7 +85,7 @@ export default {
   sider: {
     home: 'Home',
     proxyGroup: 'Proxy Groups',
-    profileManagement: 'Profile Management',
+    profileManagement: 'My Subscription',
     rules: 'Rules',
     connection: 'Connections',
     logs: 'Logs',
@@ -167,7 +167,25 @@ export default {
       proxy: 'Proxy:',
       noProfile: 'No active profile',
       unlimited: 'Unlimited',
-      never: 'Never'
+      never: 'Never',
+      fullMode: 'Global',
+      fullModeTooltip:
+        'Pass EVERYTHING through VPN, even the local/government websites (very, VERY undesirable!)',
+      settingsChangedHint: 'Some settings are changed, click to view'
+    },
+    changedSettings: {
+      title: 'Changed Settings',
+      noChanges: 'All settings are at their default values',
+      current: 'Current',
+      default: 'Default',
+      defaultLabel: 'Default: {{value}}',
+      on: 'On',
+      off: 'Off',
+      empty: 'empty',
+      entries: '{{count}} entries',
+      warningTitle: 'Unsupported Settings',
+      warningBody:
+        'Some settings are not supported by Bitumi services. Expect connection problems and the lowest priority from our support team.'
     },
     settings: {
       title: 'Application Settings',
@@ -176,7 +194,7 @@ export default {
       officialDocs: 'Official Documentation'
     },
     profiles: {
-      title: 'Profile Management',
+      title: 'My Subscription',
       updateAll: 'Update all profiles',
       profileSettings: 'Profile settings',
       openLocalConfig: 'Open local config',
@@ -187,8 +205,12 @@ export default {
       unsupportedFileType: 'Unsupported file type',
       checkUpdate: 'Check for updates',
       openInBrowser: 'Open in browser',
-      emptyTitle: 'No profiles yet',
-      emptyDescription: 'Add a profile to get started',
+      emptyTitle: 'No profile yet',
+      emptyDescription: 'To add a profile, open the \'My Subscription\' page',
+      addSubscription: 'Add subscription',
+      emptyContinue: 'Continue following the instructions,',
+      emptyOr: 'or ',
+      emptyPasteLink: 'paste subscription link manually',
       addProfile: 'Add Profile',
       dropFileHint: 'Drop config file here',
       hwidLimitTitle: 'Device limit exceeded',
@@ -229,7 +251,10 @@ export default {
     },
     logs: {
       title: 'Real-time Logs',
-      clearLogs: 'Clear logs'
+      clearLogs: 'Clear logs',
+      exportToDesktop: 'Save logs to Desktop',
+      exportSuccess: 'Created {{fileName}} on Desktop',
+      openFile: 'Open'
     },
     rules: {
       title: 'Routing Rules'
@@ -401,7 +426,7 @@ export default {
     pleaseConfirm: 'Please Confirm',
     confirmDelete: 'Confirm Delete',
     confirmImportProfile: 'Confirm import subscription config?',
-    confirmQuit: 'Are you sure you want to quit Koala Clash?',
+    confirmQuit: 'Are you sure you want to quit Bitumi?',
     quitWarning: 'Proxy functionality will stop working after quitting',
     quickQuitHint: 'Double press or long press',
     canQuitDirectly: 'to quit directly',
@@ -428,6 +453,15 @@ export default {
   },
 
   settings: {
+    tabs: {
+      title: 'Tabs',
+      seeMore: 'See more',
+      enableConnections: 'Enable <icon/> Connections tab',
+      enableRules: 'Enable <icon/> Rules tab',
+      enableLogs: 'Enable <icon/> Logs tab',
+      enableProfiles: 'Enable <icon/> My Subscription tab',
+      enableProxies: 'Enable <icon/> Proxy Groups tab'
+    },
     general: {
       autoStart: 'Auto Start',
       silentStart: 'Silent Start',
@@ -483,6 +517,7 @@ export default {
       mainSwitchTun: 'TUN Mode',
       mainSwitchSysproxy: 'Proxy Mode',
       mainSwitchProxyMode: 'Proxy Mode',
+      globalMode: 'Enable Global Mode slider',
       takeOverDNS: 'Take over DNS settings',
       takeOverSniffer: 'Take over domain sniffing settings',
       stopCoreOnDisconnect: 'Stop core on disconnect',
@@ -638,7 +673,7 @@ export default {
       registerTaskSchedule: 'Register Task Schedule'
     },
     serviceModal: {
-      title: 'Koala Clash Service Management',
+      title: 'Bitumi Service Management',
       serviceStatus: 'Service Status',
       connectionStatus: 'Connection Status',
       checking: 'Checking',
@@ -729,6 +764,8 @@ export default {
     longTermValid: 'Long-term Valid',
     homepage: 'Homepage',
     support: 'Support',
+    updateSuccess: 'Subscription "{{name}}" updated',
+    updateNoChange: 'Subscription "{{name}}" is already up to date',
     showDate: 'Show Date',
     subscriptionUA: 'Subscription User Agent',
     dateUpdated: 'Updated time',
@@ -947,7 +984,7 @@ export default {
     sidebarHomeDesc: 'Click the Home icon in the sidebar to return and finish the tutorial.',
     supportTitle: 'Support',
     supportDesc: 'Click here to contact your provider support.',
-    welcome: 'Welcome to Koala Clash',
+    welcome: 'Welcome to Bitumi',
     welcomeDesc:
       'This is an interactive tutorial to help you quickly get familiar with this app. Click "Next" to continue.',
     navbar: 'Navigation Bar',
@@ -958,7 +995,7 @@ export default {
       'Clicking on a card expands its details page. Some cards also have a quick toggle switch that can be triggered directly by clicking the switch.',
     mainArea: 'Main Area',
     mainAreaDesc: 'This is the main operation area where you can view and edit detailed settings.',
-    profileManagement: 'Profile Management',
+    profileManagement: 'My Subscription',
     profileManagementDesc:
       'The profile management card displays the current subscription information. Click to enter the profile management page. Right-click the card to quickly switch profiles.',
     profileImport: 'Import Subscription',

@@ -22,6 +22,8 @@ import { Spinner } from '@renderer/components/ui/spinner'
 import { Switch } from '@renderer/components/ui/switch'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
+import { useFocusedCard } from '@renderer/hooks/use-setting-focus'
 import { mihomoUpgradeUI, mihomoHotReloadConfig } from '@renderer/utils/ipc'
 import { isValidListenAddress } from '@renderer/utils/validate'
 import { useTranslation } from 'react-i18next'
@@ -29,6 +31,8 @@ import { CloudDownload, ExternalLink, Eye, EyeClosed, RefreshCcw } from 'lucide-
 
 const ControllerSetting: React.FC = () => {
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
+  const focusedCard = useFocusedCard()
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const {
     'external-controller': externalController = '',
@@ -81,8 +85,15 @@ const ControllerSetting: React.FC = () => {
   }
 
   return (
-    <SettingCard title={t('mihomo.controllerSettings.externalController')}>
-      <SettingItem title={t('mihomo.controllerSettings.listenAddress')} divider={externalController !== ''}>
+    <SettingCard
+      title={t('mihomo.controllerSettings.externalController')}
+      defaultOpen={focusedCard === 'mihomo-controller'}
+    >
+      <SettingItem
+        title={t('mihomo.controllerSettings.listenAddress')}
+        divider={externalController !== ''}
+        {...track('external-controller')}
+      >
         <div className="flex">
           {externalControllerInput != externalController && !externalControllerError && (
             <Button
@@ -144,6 +155,7 @@ const ControllerSetting: React.FC = () => {
               </Button>
             }
             divider
+            {...track('secret')}
           >
             <div className="flex">
               {secretInput != secret && (
@@ -180,7 +192,11 @@ const ControllerSetting: React.FC = () => {
               </InputGroup>
             </div>
           </SettingItem>
-          <SettingItem title={t('mihomo.controllerSettings.enableControllerPanel')} divider>
+          <SettingItem
+            title={t('mihomo.controllerSettings.enableControllerPanel')}
+            divider
+            {...track('external-ui')}
+          >
             <Switch
               checked={enableExternalUi}
               onCheckedChange={(v) => {
@@ -248,6 +264,7 @@ const ControllerSetting: React.FC = () => {
                 </>
               }
               divider
+              {...track('external-ui-url')}
             >
               <div className="flex">
                 {externalUiUrlInput != externalUiUrl && (
@@ -293,7 +310,10 @@ const ControllerSetting: React.FC = () => {
           )}
           <SettingItem title={t('mihomo.controllerSettings.corsConfig')}></SettingItem>
           <div className="flex flex-col space-y-2 mt-2"></div>
-          <SettingItem title={t('mihomo.controllerSettings.allowPrivateNetwork')}>
+          <SettingItem
+            title={t('mihomo.controllerSettings.allowPrivateNetwork')}
+            {...track('external-controller-cors.allow-private-network')}
+          >
             <Switch
               checked={allowPrivateNetwork}
               onCheckedChange={(v) => {
@@ -307,7 +327,10 @@ const ControllerSetting: React.FC = () => {
             />
           </SettingItem>
           <div className="mt-1"></div>
-          <SettingItem title={t('mihomo.controllerSettings.allowedOrigins')}>
+          <SettingItem
+            title={t('mihomo.controllerSettings.allowedOrigins')}
+            {...track('external-controller-cors.allow-origins')}
+          >
             {allowOriginsInput.join(',') != initialAllowOrigins.join(',') && (
               <Button
                 size="sm"

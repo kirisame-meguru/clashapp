@@ -20,10 +20,12 @@ import { restartCore, setupFirewall } from '@renderer/utils/ipc'
 import { platform } from '@renderer/utils/init'
 import React, { useState } from 'react'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
 import { useTranslation } from 'react-i18next'
 
 const Tun: React.FC = () => {
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { appConfig, patchAppConfig } = useAppConfig()
   const { autoSetDNSMode = 'exec', controlTun = false } = appConfig || {}
@@ -101,7 +103,7 @@ const Tun: React.FC = () => {
         }
       >
         <SettingCard className="tun-settings">
-          <SettingItem title={t('pages.tun.takeOverTun')} divider>
+          <SettingItem title={t('pages.tun.takeOverTun')} divider {...track('controlTun')}>
             <Switch
               checked={controlTun}
               onCheckedChange={async (value) => {
@@ -138,7 +140,7 @@ const Tun: React.FC = () => {
             </SettingItem>
           )}
           {platform === 'darwin' && (
-            <SettingItem title={t('pages.tun.autoSetSystemDNS')} divider>
+            <SettingItem title={t('pages.tun.autoSetSystemDNS')} divider {...track('autoSetDNSMode')}>
               <Select
                 value={autoSetDNSMode}
                 onValueChange={async (value) => {
@@ -156,7 +158,7 @@ const Tun: React.FC = () => {
               </Select>
             </SettingItem>
           )}
-          <SettingItem title={t('pages.tun.tunModeStack')} divider>
+          <SettingItem title={t('pages.tun.tunModeStack')} divider {...track('tun.stack')}>
             <Tabs
               value={values.stack}
               onValueChange={(value) => setValues({ ...values, stack: value as TunStack })}
@@ -170,7 +172,7 @@ const Tun: React.FC = () => {
           </SettingItem>
           {platform !== 'darwin' && (
             <>
-              <SettingItem title={t('pages.tun.tunCardName')} divider>
+              <SettingItem title={t('pages.tun.tunCardName')} divider {...track('tun.device')}>
                 <Input
                   className="w-[100px]"
                   value={values.device || ''}
@@ -179,7 +181,7 @@ const Tun: React.FC = () => {
                   }}
                 />
               </SettingItem>
-              <SettingItem title={t('pages.tun.strictRoute')} divider>
+              <SettingItem title={t('pages.tun.strictRoute')} divider {...track('tun.strict-route')}>
                 <Switch
                   checked={values.strictRoute}
                   onCheckedChange={(value) => {
@@ -189,7 +191,7 @@ const Tun: React.FC = () => {
               </SettingItem>
             </>
           )}
-          <SettingItem title={t('pages.tun.autoSetRouteRules')} divider>
+          <SettingItem title={t('pages.tun.autoSetRouteRules')} divider {...track('tun.auto-route')}>
             <Switch
               checked={values.autoRoute}
               onCheckedChange={(value) => {
@@ -198,7 +200,7 @@ const Tun: React.FC = () => {
             />
           </SettingItem>
           {platform === 'linux' && (
-            <SettingItem title={t('pages.tun.autoSetTCPRedirect')} divider>
+            <SettingItem title={t('pages.tun.autoSetTCPRedirect')} divider {...track('tun.auto-redirect')}>
               <Switch
                 checked={values.autoRedirect}
                 onCheckedChange={(value) => {
@@ -207,7 +209,11 @@ const Tun: React.FC = () => {
               />
             </SettingItem>
           )}
-          <SettingItem title={t('pages.tun.autoSelectTrafficExit')} divider>
+          <SettingItem
+            title={t('pages.tun.autoSelectTrafficExit')}
+            divider
+            {...track('tun.auto-detect-interface')}
+          >
             <Switch
               checked={values.autoDetectInterface}
               onCheckedChange={(value) => {
@@ -215,7 +221,11 @@ const Tun: React.FC = () => {
               }}
             />
           </SettingItem>
-          <SettingItem title={t('pages.tun.icmpForwarding')} divider>
+          <SettingItem
+            title={t('pages.tun.icmpForwarding')}
+            divider
+            {...track('tun.disable-icmp-forwarding')}
+          >
             <Switch
               checked={!values.disableIcmpForwarding}
               onCheckedChange={(value) => {
@@ -223,7 +233,7 @@ const Tun: React.FC = () => {
               }}
             />
           </SettingItem>
-          <SettingItem title="MTU" divider>
+          <SettingItem title="MTU" divider {...track('tun.mtu')}>
             <Input
               type="number"
               className="w-[100px]"
@@ -233,7 +243,7 @@ const Tun: React.FC = () => {
               }}
             />
           </SettingItem>
-          <SettingItem title={t('pages.tun.dnsHijack')} divider>
+          <SettingItem title={t('pages.tun.dnsHijack')} divider {...track('tun.dns-hijack')}>
             <Input
               className="w-[50%]"
               value={values.dnsHijack.join(',')}
@@ -250,6 +260,7 @@ const Tun: React.FC = () => {
             placeholder={t('pages.tun.exampleNetwork')}
             onChange={(list) => setValues({ ...values, routeExcludeAddress: list as string[] })}
             divider={false}
+            {...track('tun.route-exclude-address')}
           />
         </SettingCard>
       </BasePage>

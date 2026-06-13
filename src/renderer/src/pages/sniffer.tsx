@@ -7,11 +7,13 @@ import SettingCard from '@renderer/components/base/base-setting-card'
 import SettingItem from '@renderer/components/base/base-setting-item'
 import EditableList from '@renderer/components/base/base-list-editor'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 const Sniffer: React.FC = () => {
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { sniffer } = controledMihomoConfig || {}
   const {
@@ -106,7 +108,11 @@ const Sniffer: React.FC = () => {
       }
     >
       <SettingCard>
-        <SettingItem title={t('pages.sniffer.overrideConnectionAddress')} divider>
+        <SettingItem
+          title={t('pages.sniffer.overrideConnectionAddress')}
+          divider
+          {...track('sniffer.override-destination')}
+        >
           <Switch
             checked={values.overrideDestination}
             onCheckedChange={(value) => {
@@ -125,7 +131,11 @@ const Sniffer: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title={t('pages.sniffer.sniffRealIPMapping')} divider>
+        <SettingItem
+          title={t('pages.sniffer.sniffRealIPMapping')}
+          divider
+          {...track('sniffer.force-dns-mapping')}
+        >
           <Switch
             checked={values.forceDNSMapping}
             onCheckedChange={(value) => {
@@ -133,7 +143,11 @@ const Sniffer: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title={t('pages.sniffer.sniffUnmappedIP')} divider>
+        <SettingItem
+          title={t('pages.sniffer.sniffUnmappedIP')}
+          divider
+          {...track('sniffer.parse-pure-ip')}
+        >
           <Switch
             checked={values.parsePureIP}
             onCheckedChange={(value) => {
@@ -141,7 +155,11 @@ const Sniffer: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title={t('pages.sniffer.httpPortSniffer')} divider>
+        <SettingItem
+          title={t('pages.sniffer.httpPortSniffer')}
+          divider
+          {...track('sniffer.sniff.HTTP.ports')}
+        >
           <Input
             className="w-[50%]"
             placeholder={t('pages.sniffer.portPlaceholder')}
@@ -149,7 +167,11 @@ const Sniffer: React.FC = () => {
             onChange={(event) => handleSniffPortChange('HTTP', event.target.value)}
           />
         </SettingItem>
-        <SettingItem title={t('pages.sniffer.tlsPortSniffer')} divider>
+        <SettingItem
+          title={t('pages.sniffer.tlsPortSniffer')}
+          divider
+          {...track('sniffer.sniff.TLS.ports')}
+        >
           <Input
             className="w-[50%]"
             placeholder={t('pages.sniffer.portPlaceholder')}
@@ -157,7 +179,11 @@ const Sniffer: React.FC = () => {
             onChange={(event) => handleSniffPortChange('TLS', event.target.value)}
           />
         </SettingItem>
-        <SettingItem title={t('pages.sniffer.quicPortSniffer')} divider>
+        <SettingItem
+          title={t('pages.sniffer.quicPortSniffer')}
+          divider
+          {...track('sniffer.sniff.QUIC.ports')}
+        >
           <Input
             className="w-[50%]"
             placeholder={t('pages.sniffer.portPlaceholder')}
@@ -167,24 +193,28 @@ const Sniffer: React.FC = () => {
         </SettingItem>
         <EditableList
           title={t('pages.sniffer.skipDomainSniffing')}
+          {...track('sniffer.skip-domain')}
           items={values.skipDomain}
           onChange={(list) => setValues({ ...values, skipDomain: list as string[] })}
           placeholder={t('pages.sniffer.examplePush')}
         />
         <EditableList
           title={t('pages.sniffer.forceDomainSniffing')}
+          {...track('sniffer.force-domain')}
           items={values.forceDomain}
           onChange={(list) => setValues({ ...values, forceDomain: list as string[] })}
           placeholder={t('pages.sniffer.exampleDomain')}
         />
         <EditableList
           title={t('pages.sniffer.skipDestAddressSniffing')}
+          {...track('sniffer.skip-dst-address')}
           items={values.skipDstAddress}
           onChange={(list) => setValues({ ...values, skipDstAddress: list as string[] })}
           placeholder={t('pages.sniffer.exampleCIDR')}
         />
         <EditableList
           title={t('pages.sniffer.skipSourceAddressSniffing')}
+          {...track('sniffer.skip-src-address')}
           items={values.skipSrcAddress}
           onChange={(list) => setValues({ ...values, skipSrcAddress: list as string[] })}
           placeholder={t('pages.sniffer.exampleCIDR')}

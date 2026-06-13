@@ -6,6 +6,8 @@ import EditableList from '../base/base-list-editor'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { triggerSysProxy, mihomoHotReloadConfig } from '@renderer/utils/ipc'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
+import { useFocusedCard } from '@renderer/hooks/use-setting-focus'
 import { platform } from '@renderer/utils/init'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
@@ -16,6 +18,8 @@ import { Network } from 'lucide-react'
 
 const PortSetting: React.FC = () => {
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
+  const focusedCard = useFocusedCard()
   const { appConfig } = useAppConfig()
   const { sysProxy, proxyMode = false, onlyActiveDevice = false } = appConfig || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
@@ -67,8 +71,8 @@ const PortSetting: React.FC = () => {
   return (
     <>
       {lanOpen && <InterfaceModal onClose={() => setLanOpen(false)} />}
-      <SettingCard title={t('mihomo.portSettings.title')}>
-        <SettingItem title={t('mihomo.portSettings.mixedPort')} divider>
+      <SettingCard title={t('mihomo.portSettings.title')} defaultOpen={focusedCard === 'mihomo-ports'}>
+        <SettingItem title={t('mihomo.portSettings.mixedPort')} divider {...track('mixed-port')}>
           <div className="flex">
             {mixedPortInput !== mixedPort && (
               <Button
@@ -97,7 +101,7 @@ const PortSetting: React.FC = () => {
             />
           </div>
         </SettingItem>
-        <SettingItem title={t('mihomo.portSettings.socksPort')} divider>
+        <SettingItem title={t('mihomo.portSettings.socksPort')} divider {...track('socks-port')}>
           <div className="flex">
             {socksPortInput !== socksPort && (
               <Button
@@ -124,7 +128,7 @@ const PortSetting: React.FC = () => {
             />
           </div>
         </SettingItem>
-        <SettingItem title={t('mihomo.portSettings.httpPort')} divider>
+        <SettingItem title={t('mihomo.portSettings.httpPort')} divider {...track('port')}>
           <div className="flex">
             {httpPortInput !== httpPort && (
               <Button
@@ -152,7 +156,7 @@ const PortSetting: React.FC = () => {
           </div>
         </SettingItem>
         {platform !== 'win32' && (
-          <SettingItem title={t('mihomo.portSettings.redirPort')} divider>
+          <SettingItem title={t('mihomo.portSettings.redirPort')} divider {...track('redir-port')}>
             <div className="flex">
               {redirPortInput !== redirPort && (
                 <Button
@@ -181,7 +185,7 @@ const PortSetting: React.FC = () => {
           </SettingItem>
         )}
         {platform === 'linux' && (
-          <SettingItem title={t('mihomo.portSettings.tproxyPort')} divider>
+          <SettingItem title={t('mihomo.portSettings.tproxyPort')} divider {...track('tproxy-port')}>
             <div className="flex">
               {tproxyPortInput !== tproxyPort && (
                 <Button
@@ -223,6 +227,7 @@ const PortSetting: React.FC = () => {
             </Button>
           }
           divider
+          {...track('allow-lan')}
         >
           <Switch
             checked={allowLan}
@@ -233,7 +238,7 @@ const PortSetting: React.FC = () => {
         </SettingItem>
         {allowLan && (
           <>
-            <SettingItem title={t('mihomo.portSettings.allowedIpRanges')}>
+            <SettingItem title={t('mihomo.portSettings.allowedIpRanges')} {...track('lan-allowed-ips')}>
               {lanAllowedIpsInput.join('') !== lanAllowedIps.join('') && (
                 <Button
                   size="sm"
@@ -250,7 +255,7 @@ const PortSetting: React.FC = () => {
               onChange={(items) => setLanAllowedIpsInput(items as string[])}
               placeholder={t('mihomo.portSettings.ipRangePlaceholder')}
             />
-            <SettingItem title={t('mihomo.portSettings.deniedIpRanges')}>
+            <SettingItem title={t('mihomo.portSettings.deniedIpRanges')} {...track('lan-disallowed-ips')}>
               {lanDisallowedIpsInput.join('') !== lanDisallowedIps.join('') && (
                 <Button
                   size="sm"
@@ -269,7 +274,7 @@ const PortSetting: React.FC = () => {
             />
           </>
         )}
-        <SettingItem title={t('mihomo.portSettings.authentication')}>
+        <SettingItem title={t('mihomo.portSettings.authentication')} {...track('authentication')}>
           {authenticationInput.join() !== authentication.join() && (
             <Button
               size="sm"
@@ -287,7 +292,7 @@ const PortSetting: React.FC = () => {
           parse={parseAuth}
           format={formatAuth}
         />
-        <SettingItem title={t('mihomo.portSettings.skipAuthIpRanges')}>
+        <SettingItem title={t('mihomo.portSettings.skipAuthIpRanges')} {...track('skip-auth-prefixes')}>
           {skipAuthPrefixesInput.join('') !== skipAuthPrefixes.join('') && (
             <Button
               size="sm"

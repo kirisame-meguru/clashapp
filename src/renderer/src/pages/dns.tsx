@@ -11,6 +11,7 @@ import EditableList from '@renderer/components/base/base-list-editor'
 import AdvancedDnsSetting from '@renderer/components/dns/advanced-dns-setting'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
 import React, { useState } from 'react'
 import {
   isValidIPv4Cidr,
@@ -22,6 +23,7 @@ import { useTranslation } from 'react-i18next'
 
 const DNS: React.FC = () => {
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const { appConfig, patchAppConfig } = useAppConfig()
   const { hosts } = appConfig || {}
@@ -156,7 +158,7 @@ const DNS: React.FC = () => {
       }
     >
       <SettingCard>
-        <SettingItem title={t('pages.dns.ipv6')} divider>
+        <SettingItem title={t('pages.dns.ipv6')} divider {...track('dns.ipv6')}>
           <Switch
             checked={values.ipv6}
             onCheckedChange={(v) => {
@@ -164,7 +166,7 @@ const DNS: React.FC = () => {
             }}
           />
         </SettingItem>
-        <SettingItem title={t('pages.dns.domainMappingMode')} divider>
+        <SettingItem title={t('pages.dns.domainMappingMode')} divider {...track('dns.enhanced-mode')}>
           <Tabs
             value={values.enhancedMode}
             onValueChange={(value) => setValues({ ...values, enhancedMode: value as DnsMode })}
@@ -178,7 +180,7 @@ const DNS: React.FC = () => {
         </SettingItem>
         {values.enhancedMode === 'fake-ip' && (
           <>
-            <SettingItem title={t('pages.dns.fakeIPRangeIPv4')} divider>
+            <SettingItem title={t('pages.dns.fakeIPRangeIPv4')} divider {...track('dns.fake-ip-range')}>
               <Tooltip open={!!fakeIPRangeError}>
                 <TooltipTrigger asChild>
                   <Input
@@ -206,7 +208,7 @@ const DNS: React.FC = () => {
               </Tooltip>
             </SettingItem>
             {values.ipv6 && (
-              <SettingItem title={t('pages.dns.fakeIPRangeIPv6')} divider>
+              <SettingItem title={t('pages.dns.fakeIPRangeIPv6')} divider {...track('dns.fake-ip-range6')}>
                 <Tooltip open={!!fakeIPRange6Error}>
                   <TooltipTrigger asChild>
                     <Input
@@ -236,6 +238,7 @@ const DNS: React.FC = () => {
             )}
             <EditableList
               title={t('pages.dns.fakeIPFilter')}
+              {...track('dns.fake-ip-filter')}
               items={values.fakeIPFilter}
               validate={(part) => isValidDomainWildcard(part as string)}
               onChange={(list) => {
@@ -252,6 +255,7 @@ const DNS: React.FC = () => {
         )}
         <EditableList
           title={t('pages.dns.baseServer')}
+          {...track('dns.default-nameserver')}
           items={values.defaultNameserver}
           validate={(part) => isValidDnsServer(part as string, true)}
           onChange={(list) => {
@@ -266,6 +270,7 @@ const DNS: React.FC = () => {
         />
         <EditableList
           title={t('pages.dns.defaultResolver')}
+          {...track('dns.nameserver')}
           items={values.nameserver}
           validate={(part) => isValidDnsServer(part as string)}
           onChange={(list) => {
@@ -281,6 +286,7 @@ const DNS: React.FC = () => {
         />
       </SettingCard>
       <AdvancedDnsSetting
+        track={track}
         respectRules={values.respectRules}
         directNameserver={values.directNameserver}
         proxyServerNameserver={values.proxyServerNameserver}

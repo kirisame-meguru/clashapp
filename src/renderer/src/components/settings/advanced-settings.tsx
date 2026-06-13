@@ -38,6 +38,8 @@ import { platform } from '@renderer/utils/init'
 import { ChevronDownIcon, Copy, MessageCircleQuestionMark, Settings } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import EditableList from '../base/base-list-editor'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
+import { useFocusedCard } from '@renderer/hooks/use-setting-focus'
 import { useTranslation } from 'react-i18next'
 
 const emptyArray: string[] = []
@@ -57,6 +59,8 @@ interface AdvancedSettingsProps {
 const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
   const { showHiddenSettings } = props
   const { t } = useTranslation()
+  const { track } = useChangedSettings()
+  const focusedCard = useFocusedCard()
   const navigate = useNavigate()
   const { appConfig, patchAppConfig } = useAppConfig()
   const {
@@ -106,7 +110,10 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
   }
 
   return (
-    <SettingCard title={t('settings.advanced.moreSettings')}>
+    <SettingCard
+      title={t('settings.advanced.moreSettings')}
+      defaultOpen={focusedCard === 'settings-advanced'}
+    >
       <SettingItem
         title={t('settings.advanced.autoEnterLightMode')}
         actions={
@@ -204,7 +211,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
         </SettingItem>
       )}
       {platform === 'win32' && (
-        <SettingItem title={t('settings.advanced.corePriority')} divider>
+        <SettingItem title={t('settings.advanced.corePriority')} divider {...track('mihomoCpuPriority')}>
           <Select
             value={mihomoCpuPriority}
             onValueChange={async (value) => {
@@ -244,6 +251,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
           </Button>
         }
         divider
+        {...track('controlDns')}
       >
         <Switch
           checked={controlDns}
@@ -266,6 +274,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
           </Button>
         }
         divider
+        {...track('controlSniff')}
       >
         <Switch
           checked={controlSniff}
@@ -335,6 +344,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
           </Tooltip>
         }
         divider
+        {...track('networkDetection')}
       >
         <Switch
           checked={networkDetection}
@@ -395,7 +405,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
           <EditableList items={bypass} onChange={(list) => setBypass(list as string[])} />
         </>
       )}
-      <SettingItem title={t('settings.advanced.directOnSpecificWifi')}>
+      <SettingItem title={t('settings.advanced.directOnSpecificWifi')} {...track('pauseSSID')}>
         {pauseSSIDInput.join('') !== pauseSSIDArray.join('') && (
           <Button
             size="sm"

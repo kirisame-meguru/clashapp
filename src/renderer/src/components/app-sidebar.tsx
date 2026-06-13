@@ -18,14 +18,15 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar
 } from '@renderer/components/ui/sidebar'
-import OutboundModeSwitcher from '@renderer/components/sider/outbound-mode-switcher'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import ConfigViewer from '@renderer/components/sider/config-viewer'
+import bitumiLogo from '@renderer/assets/bitumi-logo.png'
 
 const navItems = [
   { key: 'main', path: '/home', icon: HomeIcon, i18nKey: 'sider.home' },
@@ -48,8 +49,6 @@ const AppSidebar: React.FC = () => {
   const [showRuntimeConfig, setShowRuntimeConfig] = useState(false)
   const { profileConfig } = useProfileConfig()
   const hasProfiles = (profileConfig?.items?.length ?? 0) > 0
-  const currentProfile = profileConfig?.items?.find((i) => i.id === profileConfig.current)
-  const globalModeAllowed = currentProfile?.globalMode !== false
   const filteredNavItems = hasProfiles
     ? navItems
     : navItems.filter((item) => allowedWithoutProfiles.has(item.key))
@@ -60,8 +59,22 @@ const AppSidebar: React.FC = () => {
       collapsible="icon"
       side="left"
       variant="floating"
-      className="pt-14.25"
+      className="pt-10"
     >
+      <SidebarHeader>
+        <div className="glass-surface flex h-12 items-center gap-2 rounded-md px-2 group-data-[collapsible=icon]:aspect-square group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+          <img
+            src={bitumiLogo}
+            alt="Bitumi"
+            className="aspect-square size-8 shrink-0 rounded-md object-contain shadow-[0_0_18px_rgba(217,70,239,0.35)]"
+          />
+          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <div className="truncate text-sm font-semibold tracking-normal text-sidebar-foreground">
+              Bitumi
+            </div>
+          </div>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -93,7 +106,6 @@ const AppSidebar: React.FC = () => {
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col items-center gap-2">
-          {hasProfiles && globalModeAllowed && <OutboundModeSwitcher />}
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton tooltip={t('common.toggleSidebar')} onClick={toggleSidebar} className="cursor-pointer">

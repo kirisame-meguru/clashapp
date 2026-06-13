@@ -155,7 +155,7 @@ export async function changeCurrentProfile(id: string): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('changeCurrentProfile', id))
 }
 
-export async function addProfileItem(item: Partial<ProfileItem>): Promise<void> {
+export async function addProfileItem(item: Partial<ProfileItem>): Promise<boolean> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('addProfileItem', item))
 }
 
@@ -305,20 +305,6 @@ export async function getRuntimeConfig(): Promise<MihomoConfig> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getRuntimeConfig'))
 }
 
-export async function checkUpdate(): Promise<AppVersion | undefined> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('checkUpdate'))
-}
-
-export async function downloadAndInstallUpdate(version: string): Promise<void> {
-  return ipcErrorWrapper(
-    await window.electron.ipcRenderer.invoke('downloadAndInstallUpdate', version)
-  )
-}
-
-export async function cancelUpdate(): Promise<void> {
-  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('cancelUpdate'))
-}
-
 export async function getVersion(): Promise<string> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('getVersion'))
 }
@@ -407,6 +393,10 @@ export async function showContextMenu(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('showContextMenu'))
 }
 
+export async function openPath(target: string): Promise<void> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('openPath', target))
+}
+
 export async function openFile(id: string): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('openFile', id))
 }
@@ -421,6 +411,10 @@ export async function resetAppConfig(): Promise<void> {
 
 export async function createHeapSnapshot(): Promise<void> {
   return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('createHeapSnapshot'))
+}
+
+export async function exportLogsToDesktop(logs: ControllerLog[]): Promise<string> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('exportLogsToDesktop', logs))
 }
 
 export async function getUserAgent(): Promise<string> {

@@ -15,27 +15,13 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { GroupedVirtuoso, GroupedVirtuosoHandle } from 'react-virtuoso'
 import ProxyItem from '@renderer/components/proxies/proxy-item'
-import ProxySettingModal from '@renderer/components/proxies/proxy-setting-modal'
 import { useGroups } from '@renderer/hooks/use-groups'
 import CollapseInput from '@renderer/components/base/collapse-input'
 import { includesIgnoreCase } from '@renderer/utils/includes'
 import { cn } from '@renderer/lib/utils'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
 import { useTranslation } from 'react-i18next'
-import {
-  ChevronDown,
-  ChevronsDownUp,
-  ChevronsRight,
-  ChevronsUpDown,
-  Gauge,
-  MousePointerClick,
-  LocateFixed,
-  Route,
-  Scale,
-  Shield,
-  SlidersHorizontal,
-  Zap
-} from 'lucide-react'
+import { ChevronDown, ChevronsRight, Gauge, LocateFixed } from 'lucide-react'
 
 const groupTypeColor: Record<string, string> = {
   Selector: 'border-blue-500/40 bg-blue-500/8 text-blue-600 dark:text-blue-400 dark:border-blue-400/40',
@@ -48,13 +34,6 @@ const groupTypeColor: Record<string, string> = {
   Relay: 'border-rose-500/40 bg-rose-500/8 text-rose-600 dark:text-rose-400 dark:border-rose-400/40'
 }
 
-const groupTypeIcon: Record<string, React.ReactNode> = {
-  Selector: <MousePointerClick className="size-4" />,
-  URLTest: <Zap className="size-4" />,
-  Fallback: <Shield className="size-4" />,
-  LoadBalance: <Scale className="size-4" />,
-  Relay: <Route className="size-4" />
-}
 
 const Proxies: React.FC = () => {
   const { t } = useTranslation()
@@ -74,15 +53,9 @@ const Proxies: React.FC = () => {
     expandProxyGroups = false
   } = appConfig || {}
   const [cols, setCols] = useState(1)
-  const [isOpen, setIsOpen] = useState<boolean[]>([])
-  const [delaying, setDelaying] = useState<boolean[]>([])
-  const [searchValue, setSearchValue] = useState<string[]>([])
-  const [iconLoadTick, setIconLoadTick] = useState(0)
-  const delayingProxiesRef = useRef<Set<string>>(new Set())
-  const completedProxiesRef = useRef<Set<string>>(new Set())
-  const [delayingTick, setDelayingTick] = useState(0)
-  const prevGroupsLengthRef = useRef(0)
-  const [isSettingModalOpen, setIsSettingModalOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(Array(groups.length).fill(expandProxyGroups))
+  const [delaying, setDelaying] = useState(Array(groups.length).fill(false))
+  const [searchValue, setSearchValue] = useState(Array(groups.length).fill(''))
   const virtuosoRef = useRef<GroupedVirtuosoHandle>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const hasScrolledRef = useRef(false)
@@ -90,6 +63,13 @@ const Proxies: React.FC = () => {
   const allProxiesRef = useRef<(ControllerProxiesDetail | ControllerGroupDetail)[][]>([])
   const groupCountsRef = useRef<number[]>([])
   const recentlyOpenedRef = useRef<Set<number>>(new Set())
+  const prevGroupsLengthRef = useRef(groups.length)
+  const completedProxiesRef = useRef<Set<string>>(new Set())
+  const delayingProxiesRef = useRef<Set<string>>(new Set())
+  // Mutating the Set refs above doesn't re-render; bump these ticks to force
+  // the memoized row/group renderers to recompute.
+  const [iconLoadTick, setIconLoadTick] = useState(0)
+  const [delayingTick, setDelayingTick] = useState(0)
   useEffect(() => {
     if (groups.length !== prevGroupsLengthRef.current) {
       prevGroupsLengthRef.current = groups.length
@@ -162,13 +142,11 @@ const Proxies: React.FC = () => {
     return { groupCounts, allProxies }
   }, [groups, isOpen, proxyDisplayOrder, cols, searchValue])
 
+  // itemContent reads these via refs (so its useCallback stays stable across data
+  // ticks); keep them pointed at the latest values or rows render "Never See This".
   groupsRef.current = groups
   allProxiesRef.current = allProxies
   groupCountsRef.current = groupCounts
-
-  const allExpanded = useMemo(() => {
-    return groups.length > 0 && isOpen.every(Boolean)
-  }, [groups, isOpen])
 
   const onChangeProxy = useCallback(
     async (group: string, proxy: string): Promise<void> => {
@@ -258,8 +236,10 @@ const Proxies: React.FC = () => {
       return 4
     } else if (window.matchMedia('(min-width: 1024px)').matches) {
       return 3
-    } else {
+    } else if (window.matchMedia('(min-width: 640px)').matches) {
       return 2
+    } else {
+      return 1
     }
   }, [])
 
@@ -272,19 +252,6 @@ const Proxies: React.FC = () => {
         setTimeout(() => recentlyOpenedRef.current.delete(index), 1000)
       }
       return newOpen
-    })
-  }, [])
-
-  const toggleAll = useCallback(() => {
-    setIsOpen((prev) => {
-      const shouldExpand = !prev.every(Boolean)
-      if (shouldExpand) {
-        prev.forEach((v, i) => {
-          if (!v) recentlyOpenedRef.current.add(i)
-        })
-        setTimeout(() => recentlyOpenedRef.current.clear(), 1000)
-      }
-      return Array(prev.length).fill(shouldExpand)
     })
   }, [])
 
@@ -343,7 +310,6 @@ const Proxies: React.FC = () => {
       const typeColorClass =
         groupTypeColor[group.type] || 'border-muted bg-muted text-muted-foreground'
       const isExpanded = groupCounts[index] > 0
-      const showMeta = groupDisplayLayout !== 'hidden'
 
       return (
         <div
@@ -363,78 +329,71 @@ const Proxies: React.FC = () => {
               }
             }}
           >
-            <CardContent className="w-full px-4 py-3">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  {group.icon ? (
-                    <Avatar className="bg-transparent rounded-md shrink-0 size-9">
-                      <AvatarImage
-                        src={
-                          group.icon.startsWith('<svg')
-                            ? `data:image/svg+xml;utf8,${group.icon}`
-                            : localStorage.getItem(group.icon) || group.icon
-                        }
-                      />
-                    </Avatar>
-                  ) : (
-                    <div className={cn('flex items-center justify-center shrink-0 size-9 rounded-md', typeColorClass)}>
-                      {groupTypeIcon[group.type] || <Zap className="size-4" />}
-                    </div>
-                  )}
-                  <div className={`flex ${groupDisplayLayout === 'double' ? 'flex-col gap-0.5' : 'items-center gap-2'} min-w-0`}>
-                    <div className="flex items-center gap-2">
-                      <span className="flag-emoji text-sm font-semibold truncate leading-tight">
+            <CardContent className="w-full px-3 py-3">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-start gap-2">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    {group.icon ? (
+                      <Avatar className="bg-transparent rounded-md shrink-0 size-9">
+                        <AvatarImage
+                          src={
+                            group.icon.startsWith('<svg')
+                              ? `data:image/svg+xml;utf8,${group.icon}`
+                              : localStorage.getItem(group.icon) || group.icon
+                          }
+                        />
+                      </Avatar>
+                    ) : null}
+                    <div
+                      className={`min-w-0 flex-1 ${groupDisplayLayout === 'double' ? 'space-y-0.5' : 'space-y-1'}`}
+                    >
+                      <span className="flag-emoji block truncate text-sm font-medium leading-tight">
                         {group.name}
                       </span>
-                      {showMeta && (
-                        <Badge
-                          variant="ghost"
-                          className={cn('text-[10px] px-1.5 py-0 h-4 rounded font-semibold uppercase tracking-wider shrink-0', typeColorClass)}
-                        >
-                          {group.type}
-                        </Badge>
+                      {groupDisplayLayout !== 'hidden' && (
+                        <div className="flex min-w-0 items-center gap-1.5 text-xs leading-tight text-muted-foreground">
+                          <Badge
+                            variant="ghost"
+                            className={`text-[10px] px-1.5 py-0 h-4 rounded-md font-medium shrink-0 ${typeColorClass}`}
+                          >
+                            {group.type}
+                          </Badge>
+                          <span className="flag-emoji min-w-0 truncate">{group.now}</span>
+                        </div>
                       )}
                     </div>
-                    {showMeta && (
-                      <span className="flag-emoji text-xs text-muted-foreground truncate leading-tight">
-                        {group.now}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-0.5 shrink-0">
-                  <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
-                    <CollapseInput
-                      value={searchValue[index]}
-                      onValueChange={(v) => updateSearchValue(index, v)}
-                    />
-                    <Button
-                      title={t('sider.locateCurrentNode')}
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => scrollToCurrentProxy(index)}
-                    >
-                      <LocateFixed className="text-base" />
-                    </Button>
-                    <Button
-                      title={t('sider.delayTest')}
-                      variant="ghost"
-                      size="icon-sm"
-                      disabled={delaying[index]}
-                      aria-busy={delaying[index]}
-                      onClick={() => onGroupDelay(index)}
-                    >
-                      {delaying[index] ? (
-                        <Spinner className="size-4" />
-                      ) : (
-                        <Gauge className="text-base" />
-                      )}
-                    </Button>
                   </div>
                   <ChevronDown
-                    className={`transition-transform duration-200 ml-1 size-5 ${isOpen[index] ? 'rotate-180' : ''}`}
+                    className={`mt-0.5 size-5 shrink-0 transition-transform duration-200 ${isOpen[index] ? 'rotate-180' : ''}`}
                   />
+                </div>
+
+                <div
+                  className="flex items-center justify-end gap-0.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <CollapseInput
+                    value={searchValue[index]}
+                    onValueChange={(v) => updateSearchValue(index, v)}
+                  />
+                  <Button
+                    title={t('sider.locateCurrentNode')}
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => scrollToCurrentProxy(index)}
+                  >
+                    <LocateFixed className="text-base" />
+                  </Button>
+                  <Button
+                    title={t('sider.delayTest')}
+                    variant="ghost"
+                    size="icon-sm"
+                    disabled={delaying[index]}
+                    aria-busy={delaying[index]}
+                    onClick={() => onGroupDelay(index)}
+                  >
+                    {delaying[index] ? <Spinner className="size-4" /> : <Gauge className="text-base" />}
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -520,37 +479,7 @@ const Proxies: React.FC = () => {
   )
 
   return (
-    <BasePage
-      title={t('pages.proxies.title')}
-      showBackButton={fromHome}
-      header={
-        <>
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            className="app-nodrag"
-            title={allExpanded ? t('pages.proxies.collapseAll') : t('pages.proxies.expandAll')}
-            onClick={toggleAll}
-          >
-            {allExpanded ? (
-              <ChevronsDownUp className="text-lg" />
-            ) : (
-              <ChevronsUpDown className="text-lg" />
-            )}
-          </Button>
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            className="app-nodrag"
-            title={t('pages.proxies.proxyGroupSettings')}
-            onClick={() => setIsSettingModalOpen(true)}
-          >
-            <SlidersHorizontal className="text-lg" />
-          </Button>
-        </>
-      }
-    >
-      {isSettingModalOpen && <ProxySettingModal onClose={() => setIsSettingModalOpen(false)} />}
+    <BasePage title={t('pages.proxies.title')} showBackButton={fromHome}>
       {mode === 'direct' ? (
         <div className="h-full w-full flex justify-center items-center">
           <div className="flex flex-col items-center gap-3">

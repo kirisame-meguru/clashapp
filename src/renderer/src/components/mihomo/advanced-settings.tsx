@@ -1,4 +1,6 @@
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
+import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
+import { useFocusedCard } from '@renderer/hooks/use-setting-focus'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import InterfaceSelect from '../base/interface-select'
@@ -19,6 +21,8 @@ import { t } from 'i18next'
 import { MessageCircleQuestionMark } from 'lucide-react'
 
 const AdvancedSetting: React.FC = () => {
+  const { track } = useChangedSettings()
+  const focusedCard = useFocusedCard()
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
   const {
     'unified-delay': unifiedDelay,
@@ -45,8 +49,8 @@ const AdvancedSetting: React.FC = () => {
   }
 
   return (
-    <SettingCard title={t('mihomo.advancedSettings.title')}>
-      <SettingItem title={t('mihomo.advancedSettings.findProcess')} divider>
+    <SettingCard title={t('mihomo.advancedSettings.title')} defaultOpen={focusedCard === 'mihomo-advanced'}>
+      <SettingItem title={t('mihomo.advancedSettings.findProcess')} divider {...track('find-process-mode')}>
         <Tabs
           value={findProcessMode}
           onValueChange={(value) => {
@@ -60,7 +64,7 @@ const AdvancedSetting: React.FC = () => {
           </TabsList>
         </Tabs>
       </SettingItem>
-      <SettingItem title={t('mihomo.advancedSettings.storeSelected')} divider>
+      <SettingItem title={t('mihomo.advancedSettings.storeSelected')} divider {...track('profile.store-selected')}>
         <Switch
           checked={storeSelected}
           onCheckedChange={(value) => {
@@ -68,7 +72,7 @@ const AdvancedSetting: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title={t('mihomo.advancedSettings.storeFakeIP')} divider>
+      <SettingItem title={t('mihomo.advancedSettings.storeFakeIP')} divider {...track('profile.store-fake-ip')}>
         <Switch
           checked={storeFakeIp}
           onCheckedChange={(value) => {
@@ -89,6 +93,7 @@ const AdvancedSetting: React.FC = () => {
           </Tooltip>
         }
         divider
+        {...track('unified-delay')}
       >
         <Switch
           checked={unifiedDelay}
@@ -110,6 +115,7 @@ const AdvancedSetting: React.FC = () => {
           </Tooltip>
         }
         divider
+        {...track('tcp-concurrent')}
       >
         <Switch
           checked={tcpConcurrent}
@@ -118,7 +124,7 @@ const AdvancedSetting: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title={t('mihomo.advancedSettings.disableTCPKeepAlive')} divider>
+      <SettingItem title={t('mihomo.advancedSettings.disableTCPKeepAlive')} divider {...track('disable-keep-alive')}>
         <Switch
           checked={disableKeepAlive}
           onCheckedChange={(value) => {
@@ -126,7 +132,7 @@ const AdvancedSetting: React.FC = () => {
           }}
         />
       </SettingItem>
-      <SettingItem title={t('mihomo.advancedSettings.tcpKeepAliveInterval')} divider>
+      <SettingItem title={t('mihomo.advancedSettings.tcpKeepAliveInterval')} divider {...track('keep-alive-interval')}>
         <div className="flex">
           {intervalInput !== interval && (
             <Button
@@ -150,7 +156,7 @@ const AdvancedSetting: React.FC = () => {
           />
         </div>
       </SettingItem>
-      <SettingItem title={t('mihomo.advancedSettings.tcpKeepAliveIdle')} divider>
+      <SettingItem title={t('mihomo.advancedSettings.tcpKeepAliveIdle')} divider {...track('keep-alive-idle')}>
         <div className="flex">
           {idleInput !== idle && (
             <Button
@@ -174,7 +180,7 @@ const AdvancedSetting: React.FC = () => {
           />
         </div>
       </SettingItem>
-      <SettingItem title={t('mihomo.advancedSettings.utlsFingerprint')} divider>
+      <SettingItem title={t('mihomo.advancedSettings.utlsFingerprint')} divider {...track('global-client-fingerprint')}>
         <Select
           value={fingerprintValue}
           onValueChange={(value) => {
@@ -200,7 +206,7 @@ const AdvancedSetting: React.FC = () => {
           </SelectContent>
         </Select>
       </SettingItem>
-      <SettingItem title={t('mihomo.advancedSettings.outboundInterface')}>
+      <SettingItem title={t('mihomo.advancedSettings.outboundInterface')} {...track('interface-name')}>
         <InterfaceSelect
           value={interfaceName}
           exclude={[device, 'lo']}
