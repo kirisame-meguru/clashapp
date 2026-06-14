@@ -3,7 +3,7 @@ import { platform } from '@renderer/utils/init'
 import WindowControls from '@renderer/components/window-controls'
 import React, { forwardRef, useImperativeHandle, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ChevronLeft, TriangleAlert } from 'lucide-react'
+import { ChevronLeft, TriangleAlert, Home } from 'lucide-react'
 import { useChangedSettings } from '@renderer/hooks/use-changed-settings'
 import {
   ProfileIcon,
@@ -44,6 +44,7 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
   const { appConfig } = useAppConfig()
   const { count: changedCount } = useChangedSettings()
   const isSubPage = !sidebarPaths.has(location.pathname)
+  const showHomeButton = isSubPage && location.pathname !== '/settings/changed'
 
   // Tabs are top-level destinations: collapse the current entry onto Home before
   // pushing the tab, so Back from any tab always returns to Home — even if sub-pages
@@ -102,7 +103,7 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
             )}
           </div>
           <div className="header flex h-full items-stretch">
-            {(changedCount > 0 || props.header) && (
+            {(changedCount > 0 || props.header || showHomeButton) && (
               <div className="flex items-center gap-1 pr-1.5">
                 {props.header}
                 {changedCount > 0 && (
@@ -111,9 +112,20 @@ const BasePage = forwardRef<HTMLDivElement, Props>((props, ref) => {
                     variant="ghost"
                     className="app-nodrag text-yellow-500 hover:text-yellow-600"
                     title={t('pages.home.settingsChangedHint')}
-                    onClick={() => navigate('/settings/changed')}
+                    onClick={() => navigateToTab('/settings/changed')}
                   >
                     <TriangleAlert className="size-4" />
+                  </Button>
+                )}
+                {showHomeButton && (
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    className="app-nodrag"
+                    title={t('sider.home')}
+                    onClick={() => navigate('/home')}
+                  >
+                    <Home className="size-4" />
                   </Button>
                 )}
               </div>
