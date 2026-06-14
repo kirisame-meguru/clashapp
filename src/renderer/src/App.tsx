@@ -21,6 +21,7 @@ import { attachConnectionsStore } from '@renderer/store/connections-store'
 import { attachTrafficStore } from '@renderer/store/traffic-store'
 import { attachLogsStore } from '@renderer/store/logs-store'
 import { attachCoreLifecycleStore } from '@renderer/store/core-lifecycle-store'
+import { attachStatusLogStore } from '@renderer/store/status-log-store'
 
 const App: React.FC = () => {
   const { t } = useTranslation()
@@ -37,11 +38,13 @@ const App: React.FC = () => {
     const detachTraffic = attachTrafficStore()
     const detachLogs = attachLogsStore()
     const detachCoreLifecycle = attachCoreLifecycleStore()
+    const detachStatusLog = attachStatusLogStore()
     return (): void => {
       detachConnections()
       detachTraffic()
       detachLogs()
       detachCoreLifecycle()
+      detachStatusLog()
     }
   }, [])
 

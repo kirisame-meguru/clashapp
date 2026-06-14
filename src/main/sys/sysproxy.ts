@@ -6,6 +6,7 @@ import { servicePath } from '../utils/dirs'
 import { net } from 'electron'
 import { disableProxy, setPac, setProxy } from '../service/api'
 import { t } from '../utils/i18n'
+import { emitProgress } from '../utils/progress'
 
 let defaultBypass: string[]
 let triggerSysProxyTimer: NodeJS.Timeout | null = null
@@ -13,8 +14,10 @@ let triggerSysProxyTimer: NodeJS.Timeout | null = null
 export async function triggerSysProxy(enable: boolean, onlyActiveDevice: boolean): Promise<void> {
   if (net.isOnline()) {
     if (enable) {
+      emitProgress('settingSystemProxy')
       await setSysProxy(onlyActiveDevice)
     } else {
+      emitProgress('clearingSystemProxy')
       await disableSysProxy(onlyActiveDevice)
     }
   } else {

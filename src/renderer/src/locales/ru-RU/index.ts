@@ -174,6 +174,25 @@ export default {
         'Пропускать ВСЁ через VPN, даже локальные/государственные сайты (крайне, КРАЙНЕ нежелательно!)',
       settingsChangedHint: 'Некоторые параметры изменены, нажмите чтобы просмотреть'
     },
+    statusLog: {
+      patchingConfig: 'Применение конфигурации Mihomo…',
+      configuringDns: 'Настройка DNS…',
+      generatingProfile: 'Генерация профиля…',
+      reloadingCore: 'Загрузка конфигурации в ядро…',
+      settingSystemProxy: 'Установка системного прокси…',
+      clearingSystemProxy: 'Отключение системного прокси…',
+      fetchingSubscription: 'Загрузка подписки…',
+      verifyingSubscription: 'Проверка подписки…',
+      savingProfile: 'Сохранение профиля…',
+      connected: 'Подключено!',
+      disconnected: 'Отключено!',
+      updated: 'Подписка обновлена!',
+      unchanged: 'Уже актуально',
+      added: 'Подписка добавлена!',
+      failed: 'Ошибка',
+      refreshFailed: 'Не удалось обновить',
+      addFailed: 'Не удалось добавить подписку'
+    },
     changedSettings: {
       title: 'Изменённые параметры',
       noChanges: 'Все параметры имеют значения по умолчанию',

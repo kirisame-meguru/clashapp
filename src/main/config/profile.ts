@@ -18,6 +18,7 @@ import { getUserAgent } from '../utils/userAgent'
 import { getHWID, getDeviceOS, getOSVersion, getDeviceModel } from '../utils/deviceInfo'
 import { t } from '../utils/i18n'
 import { downloadCustomCss } from '../resolve/theme'
+import { emitProgress } from '../utils/progress'
 
 let profileConfig: ProfileConfig // profile.yaml
 
@@ -204,6 +205,7 @@ export async function createProfile(
       try {
         const httpsAgent = new https.Agent()
 
+        emitProgress('fetchingSubscription')
         res = await axios.get(item.url, {
           httpsAgent,
           ...(newItem.useProxy &&
@@ -349,6 +351,7 @@ export async function createProfile(
         }
       }
       if (newItem.verify) {
+        emitProgress('verifyingSubscription')
         let parsed: MihomoConfig
         try {
           parsed = parseYaml<MihomoConfig>(data)
@@ -374,6 +377,7 @@ export async function createProfile(
         }
       }
       newContent = data
+      emitProgress('savingProfile')
       await setProfileStr(id, data)
       break
     }

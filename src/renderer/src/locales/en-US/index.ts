@@ -173,6 +173,25 @@ export default {
         'Pass EVERYTHING through VPN, even the local/government websites (very, VERY undesirable!)',
       settingsChangedHint: 'Some settings are changed, click to view'
     },
+    statusLog: {
+      patchingConfig: 'Patching Mihomo config…',
+      configuringDns: 'Configuring DNS…',
+      generatingProfile: 'Generating profile…',
+      reloadingCore: 'Uploading config to core…',
+      settingSystemProxy: 'Setting system proxy…',
+      clearingSystemProxy: 'Clearing system proxy…',
+      fetchingSubscription: 'Fetching subscription…',
+      verifyingSubscription: 'Verifying subscription…',
+      savingProfile: 'Saving profile…',
+      connected: 'Connected!',
+      disconnected: 'Disconnected!',
+      updated: 'Subscription updated!',
+      unchanged: 'Already up to date',
+      added: 'Subscription added!',
+      failed: 'Failed',
+      refreshFailed: 'Refresh failed',
+      addFailed: 'Failed to add subscription'
+    },
     changedSettings: {
       title: 'Changed Settings',
       noChanges: 'All settings are at their default values',

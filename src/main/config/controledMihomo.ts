@@ -5,6 +5,7 @@ import { generateProfile } from '../core/factory'
 import { getAppConfig } from './app'
 import { defaultControledMihomoConfig } from '../utils/template'
 import { deepMerge } from '../utils/merge'
+import { emitProgress } from '../utils/progress'
 
 let controledMihomoConfig: Partial<MihomoConfig> // mihomo.yaml
 
@@ -19,6 +20,7 @@ export async function getControledMihomoConfig(force = false): Promise<Partial<M
 }
 
 export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): Promise<void> {
+  emitProgress('patchingConfig')
   await getControledMihomoConfig()
   const previousTunEnabled = controledMihomoConfig.tun?.enable ?? false
   const patchToMerge = JSON.parse(JSON.stringify(patch)) as Partial<MihomoConfig>
@@ -69,6 +71,7 @@ export async function patchControledMihomoConfig(patch: Partial<MihomoConfig>): 
 
   const currentTunEnabled = controledMihomoConfig.tun?.enable ?? false
   if (currentTunEnabled !== previousTunEnabled) {
+    emitProgress('configuringDns')
     const { setPublicDNS, recoverDNS } = await import('../core/manager')
     if (currentTunEnabled) {
       await setPublicDNS().catch(() => {})

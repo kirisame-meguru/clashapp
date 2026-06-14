@@ -10,6 +10,7 @@ import { mihomoIpcPath } from '../utils/dirs'
 import { safeSend } from '../utils/safeSend'
 import { debounce } from '../utils/debounce'
 import { normalizeApiError } from '../utils/apiError'
+import { emitProgress } from '../utils/progress'
 
 let axiosIns: AxiosInstance = null!
 let mihomoTrafficWs: WebSocket | null = null
@@ -243,6 +244,7 @@ export const mihomoHotReloadConfig = async (): Promise<void> => {
   const { generateProfile } = await import('./factory')
   const { getProfileConfig } = await import('../config')
   const { resetProviderTracking } = await import('./manager')
+  emitProgress('generatingProfile')
   await generateProfile()
   const { current } = await getProfileConfig()
   const { diffWorkDir = false } = await getAppConfig()
@@ -250,6 +252,7 @@ export const mihomoHotReloadConfig = async (): Promise<void> => {
   const configPath = diffWorkDir ? mihomoWorkConfigPath(current) : mihomoWorkConfigPath('work')
   await resetProviderTracking()
   const instance = await getAxios()
+  emitProgress('reloadingCore')
   await instance.put('/configs?force=true', { path: configPath })
 }
 

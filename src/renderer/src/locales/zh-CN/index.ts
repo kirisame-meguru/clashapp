@@ -247,6 +247,25 @@ export default {
       fullModeTooltip: '让所有流量都走 VPN，连本地/政府网站也不例外（非常、非常不推荐！）',
       settingsChangedHint: '部分设置已更改，点击查看'
     },
+    statusLog: {
+      patchingConfig: '正在应用 Mihomo 配置…',
+      configuringDns: '正在配置 DNS…',
+      generatingProfile: '正在生成配置…',
+      reloadingCore: '正在上传配置到内核…',
+      settingSystemProxy: '正在设置系统代理…',
+      clearingSystemProxy: '正在清除系统代理…',
+      fetchingSubscription: '正在获取订阅…',
+      verifyingSubscription: '正在校验订阅…',
+      savingProfile: '正在保存配置…',
+      connected: '已连接！',
+      disconnected: '已断开！',
+      updated: '订阅已更新！',
+      unchanged: '已是最新',
+      added: '订阅已添加！',
+      failed: '失败',
+      refreshFailed: '刷新失败',
+      addFailed: '添加订阅失败'
+    },
     changedSettings: {
       title: '已更改的设置',
       noChanges: '所有设置均为默认值',
