@@ -1,6 +1,6 @@
 {
   "name": "bitumi-clash",
-  "version": "0.0.3",
+  "version": "0.0.1",
   "description": "Bitumi Clash",
   "main": "./out/main/index.js",
   "author": "kirisame-meguru",

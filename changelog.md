@@ -1,4 +1,4 @@
-## 0.0.3
+## 0.0.1
 
 First release of **Bitumi Clash**, a Windows-focused fork of Koala Clash.
 
