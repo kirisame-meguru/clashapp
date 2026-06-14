@@ -1,8 +1,8 @@
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import BasePage from '@renderer/components/base/base-page'
 import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useControledMihomoConfig } from '@renderer/hooks/use-controled-mihomo-config'
-import { useProfileConfig } from '@renderer/hooks/use-profile-config'
+import { useProfileConfig, type ProfileUpdateResult } from '@renderer/hooks/use-profile-config'
 import { useGroups } from '@renderer/hooks/use-groups'
 import {
   triggerSysProxy,
@@ -25,7 +25,7 @@ import {
   PowerIcon,
   PauseIcon,
   RefreshCcw,
-  MessageCircleQuestion
+  TriangleAlert
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip'
 import EditInfoModal from '@renderer/components/profiles/edit-info-modal'
@@ -33,6 +33,8 @@ import { Spinner } from '@renderer/components/ui/spinner'
 import { CharacterMorph } from '@renderer/components/ui/character-morph'
 import { calcTraffic } from '@renderer/utils/calc'
 import { useTrafficStore } from '@renderer/store/traffic-store'
+import { useStatusLogStore } from '@renderer/store/status-log-store'
+import StatusLog from '@renderer/components/home/status-log'
 
 function formatBytes(bytes: number): string {
   if (bytes <= 0) return '0 B'
@@ -67,6 +69,9 @@ const Home: React.FC = () => {
   const hasProfiles = (profileConfig?.items?.length ?? 0) > 0
 
   const trafficInfo = useTrafficStore((s) => s.traffic)
+  const statusBegin = useStatusLogStore((s) => s.begin)
+  const statusFinish = useStatusLogStore((s) => s.finish)
+  const statusFail = useStatusLogStore((s) => s.fail)
 
   const [importOpen, setImportOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -170,22 +175,39 @@ const Home: React.FC = () => {
       mutateGroups()
       window.electron.ipcRenderer.send('updateTrayMenu')
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       setModeLoading(false)
     }
   }
 
+  // Add/refresh a subscription while narrating the backend steps in the status log.
+  // The intermediate steps stream in from the main process; we only own the
+  // terminal line here since we know the outcome.
+  const addProfileItemWithStatus = async (
+    item: Partial<ProfileItem>,
+    failKey: 'refreshFailed' | 'addFailed'
+  ): Promise<ProfileUpdateResult> => {
+    statusBegin()
+    const result = await addProfileItem(item)
+    if (result === 'updated') {
+      statusFinish('updated')
+    } else if (result === 'unchanged') {
+      statusFinish('unchanged')
+    } else {
+      statusFail(failKey)
+    }
+    return result
+  }
+
+  const onAddProfileItem = async (item: Partial<ProfileItem>): Promise<ProfileUpdateResult> =>
+    addProfileItemWithStatus(item, 'addFailed')
+
   const onRefreshSubscription = async (): Promise<void> => {
     if (!currentProfile || currentProfile.type !== 'remote' || refreshing) return
     setRefreshing(true)
     try {
-      const result = await addProfileItem(currentProfile)
-      if (result === 'updated') {
-        toast.success(t('profile.updateSuccess', { name: currentProfile.name }))
-      } else if (result === 'unchanged') {
-        toast.info(t('profile.updateNoChange', { name: currentProfile.name }))
-      }
+      await addProfileItemWithStatus(currentProfile, 'refreshFailed')
     } finally {
       setRefreshing(false)
     }
@@ -194,6 +216,7 @@ const Home: React.FC = () => {
   const onValueChange = async (enable: boolean): Promise<void> => {
     setLoading(true)
     setLoadingDirection(enable ? 'connecting' : 'disconnecting')
+    statusBegin()
     try {
       if (enable) {
         if (mainSwitchMode === 'tun') {
@@ -226,8 +249,10 @@ const Home: React.FC = () => {
       window.electron.ipcRenderer.send('updateFloatingWindow')
       window.electron.ipcRenderer.send('updateTrayMenu')
       await updateTrayIcon()
+      statusFinish(enable ? 'connected' : 'disconnected')
     } catch (e) {
-      toast.error(`${e}`)
+      statusFail('failed')
+      notifyError(e)
     } finally {
       setLoading(false)
     }
@@ -239,7 +264,7 @@ const Home: React.FC = () => {
         <EditInfoModal
           item={{ id: '', type: 'remote', name: '' } as ProfileItem}
           isCurrent={false}
-          updateProfileItem={addProfileItem}
+          updateProfileItem={onAddProfileItem}
           onClose={() => setImportOpen(false)}
           hideAdvanced
         />
@@ -325,7 +350,7 @@ const Home: React.FC = () => {
               )}
               {subscription && (
                 <div className="mt-3 border-t border-stroke/65 pt-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <div className="flex flex-col items-center gap-1 text-center">
                       <span className="text-xs text-muted-foreground">
                         {t('pages.home.trafficRemaining')}
@@ -333,6 +358,14 @@ const Home: React.FC = () => {
                       <span className="text-base font-semibold text-foreground">
                         {trafficTotal > 0 ? formatBytes(trafficRemaining) : t('pages.home.unlimited')}
                       </span>
+                    </div>
+                    <div className="flex flex-col items-center justify-end text-center">
+                      <CharacterMorph
+                        texts={[status]}
+                        reserveTexts={statusWidthTexts}
+                        interval={3000}
+                        className="h-6 leading-none text-base text-foreground font-semibold"
+                      />
                     </div>
                     <div className="flex flex-col items-center gap-1 text-center">
                       <span className="text-xs text-muted-foreground">{t('pages.home.expires')}</span>
@@ -344,15 +377,17 @@ const Home: React.FC = () => {
             </div>
           )}
 
-          <div className="flex min-h-0 translate-y-[9px] flex-col items-center justify-center py-3">
-            <div className="mb-3 flex h-6 items-center justify-center">
-              <CharacterMorph
-                texts={[status]}
-                reserveTexts={statusWidthTexts}
-                interval={3000}
-                className="h-6 leading-none text-foreground font-semibold"
-              />
-            </div>
+          <div className="flex min-h-0 flex-col items-center justify-start py-3">
+            {!subscription && (
+              <div className="mb-3 flex h-6 items-center justify-center">
+                <CharacterMorph
+                  texts={[status]}
+                  reserveTexts={statusWidthTexts}
+                  interval={3000}
+                  className="h-6 leading-none text-foreground font-semibold"
+                />
+              </div>
+            )}
             <button
               disabled={isDisabled}
               onClick={() => onValueChange(!isSelected)}
@@ -360,7 +395,7 @@ const Home: React.FC = () => {
               className="relative group transition-transform active:scale-95 cursor-pointer"
             >
               <div
-                className={`size-[7.5rem] rounded-full flex items-center justify-center transition-all duration-300 border backdrop-blur-2xl shadow-[0_18px_48px_rgba(217,70,239,0.18)] ${
+                className={`size-[7.5rem] rounded-full flex items-center justify-center transition-all duration-300 border backdrop-blur-2xl shadow-[0_18px_48px_rgba(255,101,132,0.20)] ${
                   isSelected
                     ? 'bg-linear-to-br from-gradient-start-power-on/80 to-gradient-end-power-on/80 border-stroke-power-on'
                     : 'bg-foreground text-background border-foreground/30 hover:brightness-110'
@@ -368,9 +403,9 @@ const Home: React.FC = () => {
               >
                 <div className="relative size-16">
                   <Spinner
-                    className={`absolute inset-0 m-auto size-16 text-[#FAFAFA] transition-all duration-300 ease-out ${
-                      loading ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
-                    }`}
+                    className={`absolute inset-0 m-auto size-16 transition-all duration-300 ease-out ${
+                      isSelected ? 'text-[#FAFAFA]' : 'text-background'
+                    } ${loading ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
                   />
                   <PauseIcon
                     className={`absolute inset-0 size-16 stroke-[2.6] text-white transition-all duration-300 ease-out ${
@@ -385,89 +420,52 @@ const Home: React.FC = () => {
                 </div>
               </div>
             </button>
-            {globalModeAllowed && (
-              <div
-                data-guide="home-full-toggle"
-                className="mt-4 flex items-center gap-2.5 rounded-full border border-stroke bg-card/50 backdrop-blur-xl pl-4 pr-2 py-1.5 shadow-sm"
-              >
-                <span
-                  onClick={() => !modeLoading && onToggleFull(!isGlobal)}
-                  className={`text-xs font-semibold tracking-wider text-foreground select-none ${
-                    modeLoading ? 'opacity-60' : 'cursor-pointer'
-                  }`}
-                >
-                  {t('pages.home.fullMode')}
-                </span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      aria-label={t('pages.home.fullModeTooltip')}
-                      className="flex items-center text-muted-foreground/80 transition-colors hover:text-foreground cursor-help"
-                    >
-                      <MessageCircleQuestion className="size-3.5" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-[15rem]">
-                    {t('pages.home.fullModeTooltip')}
-                  </TooltipContent>
-                </Tooltip>
-                <Switch
-                  size="sm"
-                  checked={isGlobal}
-                  disabled={modeLoading}
-                  onCheckedChange={onToggleFull}
-                />
-              </div>
-            )}
-            <div className="mt-3 h-8 flex items-center justify-center">
-              <div
-                aria-hidden={!showConnectedTimer}
-                className={`inline-flex items-center gap-0.5 text-base font-bold text-foreground tabular-nums transition-all duration-300 ease-out ${
-                  showConnectedTimer ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
-                }`}
-              >
-                <NumberFlow
-                  value={elapsedHours}
-                  format={{ minimumIntegerDigits: 2, useGrouping: false }}
-                />
-                <span>:</span>
-                <NumberFlow
-                  value={elapsedMinutes}
-                  format={{ minimumIntegerDigits: 2, useGrouping: false }}
-                />
-                <span>:</span>
-                <NumberFlow
-                  value={elapsedSeconds}
-                  format={{ minimumIntegerDigits: 2, useGrouping: false }}
-                />
-              </div>
-            </div>
             <div
               aria-hidden={!showConnectedTimer}
-              className={`mt-2 flex items-center gap-4 tabular-nums transition-all duration-300 ease-out ${
-                showConnectedTimer ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'
+              className={`mt-4 inline-flex items-center gap-0.5 text-base font-semibold text-foreground tabular-nums transition-all duration-300 ease-out ${
+                showConnectedTimer ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
               }`}
             >
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <ArrowUp className="size-3.5 text-stroke-power-on" />
-                <span>{calcTraffic(trafficInfo.upTotal)}</span>
-              </div>
-              <div className="h-3 w-px bg-stroke" />
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <ArrowDown className="size-3.5 text-stroke-power-on" />
-                <span>{calcTraffic(trafficInfo.downTotal)}</span>
-              </div>
+              <NumberFlow
+                value={elapsedHours}
+                format={{ minimumIntegerDigits: 2, useGrouping: false }}
+              />
+              <span>:</span>
+              <NumberFlow
+                value={elapsedMinutes}
+                format={{ minimumIntegerDigits: 2, useGrouping: false }}
+              />
+              <span>:</span>
+              <NumberFlow
+                value={elapsedSeconds}
+                format={{ minimumIntegerDigits: 2, useGrouping: false }}
+              />
             </div>
+            <StatusLog />
           </div>
 
           <div className="relative z-10 px-0.5 pt-3">
-            {firstGroup && (
-              <div className="border-t border-stroke/65 pt-2">
+            <div className="relative flex items-center justify-center border-t border-stroke/65 pt-2">
+              <div
+                aria-hidden={!showConnectedTimer}
+                className={`absolute bottom-0 left-0 top-2 flex items-center gap-2.5 text-[11px] text-muted-foreground tabular-nums transition-opacity duration-300 ease-out ${
+                  showConnectedTimer ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
+                <div className="flex items-center gap-1">
+                  <ArrowUp className="size-3 text-stroke-power-on" />
+                  <span>{calcTraffic(trafficInfo.upTotal)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <ArrowDown className="size-3 text-stroke-power-on" />
+                  <span>{calcTraffic(trafficInfo.downTotal)}</span>
+                </div>
+              </div>
+              {firstGroup && (
                 <button
                   data-guide="home-group-selector"
                   type="button"
-                  className="flex w-full items-center justify-center gap-2 py-2 text-center transition-colors hover:text-foreground/90"
+                  className="flex min-w-0 items-center justify-center gap-2 py-2 text-center transition-colors hover:text-foreground/90"
                   onClick={() => navigate('/proxies', { state: { fromHome: true } })}
                 >
                   <div className="flag-emoji max-w-full truncate text-center text-sm font-medium text-foreground">
@@ -475,8 +473,43 @@ const Home: React.FC = () => {
                   </div>
                   <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
                 </button>
-              </div>
-            )}
+              )}
+              {globalModeAllowed && (
+                <div
+                  data-guide="home-full-toggle"
+                  className="absolute bottom-0 right-0 top-2 flex items-center gap-2 rounded-full border border-stroke bg-card/50 backdrop-blur-xl pl-3 pr-2 shadow-sm"
+                >
+                  <span
+                    onClick={() => !modeLoading && onToggleFull(!isGlobal)}
+                    className={`text-xs font-semibold tracking-wider text-foreground select-none ${
+                      modeLoading ? 'opacity-60' : 'cursor-pointer'
+                    }`}
+                  >
+                    {t('pages.home.fullMode')}
+                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label={t('pages.home.fullModeTooltip')}
+                        className="flex items-center text-amber-500/90 transition-colors hover:text-amber-400 cursor-help"
+                      >
+                        <TriangleAlert className="size-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[15rem]">
+                      {t('pages.home.fullModeTooltip')}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Switch
+                    size="sm"
+                    checked={isGlobal}
+                    disabled={modeLoading}
+                    onCheckedChange={onToggleFull}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

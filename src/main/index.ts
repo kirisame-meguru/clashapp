@@ -30,9 +30,9 @@ app.setName('Bitumi Clash')
 
 const COMPACT_WINDOW = {
   width: 680,
-  height: 416,
+  height: 484,
   minWidth: 680,
-  minHeight: 416
+  minHeight: 484
 }
 
 function getWindowLayout(): typeof COMPACT_WINDOW {
