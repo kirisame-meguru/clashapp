@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import {
   Dialog,
   DialogClose,
@@ -65,7 +65,7 @@ const PermissionModal: React.FC<Props> = (props) => {
         await checkPermissions()
         return
       }
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       setLoading({})
     }
@@ -94,7 +94,7 @@ const PermissionModal: React.FC<Props> = (props) => {
         await checkPermissions()
         return
       }
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       setLoading({ ...loading, [coreName]: false })
     }

@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { getErrorMessage } from '@renderer/utils/notify'
 import { Button } from '@renderer/components/ui/button'
 import BasePage from '@renderer/components/base/base-page'
 import ProfileItem from '@renderer/components/profiles/profile-item'
@@ -109,7 +110,7 @@ const Profiles: React.FC = () => {
           const content = await readTextFile(path)
           await addProfileItemRef.current({ name: file.name, type: 'local', file: content })
         } catch (e) {
-          toast.error(tRef.current('pages.profiles.fileImportFailed') + e)
+          toast.error(tRef.current('pages.profiles.fileImportFailed') + getErrorMessage(e))
         }
       } else {
         toast.error(tRef.current('pages.profiles.unsupportedFileType'))

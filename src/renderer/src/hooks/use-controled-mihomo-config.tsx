@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react'
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import useSWR from 'swr'
 import { getControledMihomoConfig, patchControledMihomoConfig as patch } from '@renderer/utils/ipc'
 
@@ -23,7 +23,7 @@ export const ControledMihomoConfigProvider: React.FC<{ children: ReactNode }> = 
     try {
       await patch(value)
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e, { id: 'patchControledMihomoConfig' })
     } finally {
       mutateControledMihomoConfig()
     }

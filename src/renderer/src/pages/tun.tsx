@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
 import { Spinner } from '@renderer/components/ui/spinner'
@@ -65,7 +65,7 @@ const Tun: React.FC = () => {
     try {
       await patchControledMihomoConfig(patch)
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       setChanged(false)
     }
@@ -111,7 +111,7 @@ const Tun: React.FC = () => {
                   await patchAppConfig({ controlTun: value })
                   await patchControledMihomoConfig(value ? {} : { tun: { enable: false } })
                 } catch (e) {
-                  toast.error(`${e}`)
+                  notifyError(e)
                 }
               }}
             />
@@ -128,7 +128,7 @@ const Tun: React.FC = () => {
                     new Notification(t('pages.tun.firewallResetSuccess'))
                     await restartCore()
                   } catch (e) {
-                    toast.error(`${e}`)
+                    notifyError(e)
                   } finally {
                     setLoading(false)
                   }

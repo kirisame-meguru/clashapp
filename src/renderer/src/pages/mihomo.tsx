@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import { notifyError, getErrorMessage } from '@renderer/utils/notify'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
 import {
@@ -107,7 +107,7 @@ const Mihomo: React.FC = () => {
       await restartCore()
       PubSub.publish('mihomo-core-changed')
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     }
   }
 
@@ -117,10 +117,10 @@ const Mihomo: React.FC = () => {
       await mihomoUpgrade()
       setTimeout(() => PubSub.publish('mihomo-core-changed'), 2000)
     } catch (e) {
-      if (typeof e === 'string' && e.includes('already using latest version')) {
+      if (getErrorMessage(e).includes('already using latest version')) {
         new Notification(t('pages.mihomo.alreadyLatest'))
       } else {
-        toast.error(`${e}`)
+        notifyError(e)
       }
     } finally {
       setUpgrading(false)
@@ -179,7 +179,7 @@ const Mihomo: React.FC = () => {
                 })
                 await relaunchApp()
               } catch (e) {
-                toast.error(`${e}`)
+                notifyError(e)
               }
             }
           }
@@ -215,7 +215,7 @@ const Mihomo: React.FC = () => {
 
           await restartCore()
         } catch (e) {
-          toast.error(`${e}`)
+          notifyError(e)
         }
       }
     },

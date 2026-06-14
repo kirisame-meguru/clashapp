@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState, useCallback } from 'react'
-import { toast } from 'sonner'
+import { notifyError, getErrorMessage } from '@renderer/utils/notify'
 import useSWR from 'swr'
 import {
   getProfileConfig,
@@ -47,7 +47,7 @@ export const ProfileConfigProvider: React.FC<{ children: ReactNode }> = ({ child
     try {
       await set(config)
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       mutateProfileConfig()
       window.electron.ipcRenderer.send('updateTrayMenu')
@@ -59,10 +59,11 @@ export const ProfileConfigProvider: React.FC<{ children: ReactNode }> = ({ child
       const changed = await add(item)
       return changed ? 'updated' : 'unchanged'
     } catch (e) {
-      if (`${e}`.includes('HWID_LIMIT')) {
-        setHwidLimitErrorFromMessage(`${e}`)
+      const message = getErrorMessage(e)
+      if (message.includes('HWID_LIMIT')) {
+        setHwidLimitErrorFromMessage(message)
       } else {
-        toast.error(`${e}`)
+        notifyError(e)
       }
       return 'failed'
     } finally {
@@ -75,7 +76,7 @@ export const ProfileConfigProvider: React.FC<{ children: ReactNode }> = ({ child
     try {
       await remove(id)
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       mutateProfileConfig()
       window.electron.ipcRenderer.send('updateTrayMenu')
@@ -86,7 +87,7 @@ export const ProfileConfigProvider: React.FC<{ children: ReactNode }> = ({ child
     try {
       await update(item)
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       mutateProfileConfig()
       window.electron.ipcRenderer.send('updateTrayMenu')
@@ -97,7 +98,7 @@ export const ProfileConfigProvider: React.FC<{ children: ReactNode }> = ({ child
     try {
       await change(id)
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       mutateProfileConfig()
       window.electron.ipcRenderer.send('updateTrayMenu')

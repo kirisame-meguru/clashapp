@@ -114,25 +114,53 @@ import { getUserAgent } from './userAgent'
 import { setLanguage } from './i18n'
 import { updateApplicationMenu } from '../resolve/menu'
 
+/**
+ * Structured error sent across the IPC bridge. Carrying the `code` and `name`
+ * alongside the message (instead of flattening to a bare string) lets the
+ * renderer log/branch on the cause and keeps error rendering robust. Errors
+ * that aren't object-shaped are passed through as plain strings.
+ */
+export interface IpcErrorPayload {
+  name?: string
+  message: string
+  code?: string
+}
+
+function serializeIpcError(e: unknown): IpcErrorPayload | string {
+  if (e instanceof Error) {
+    const err = e as NodeJS.ErrnoException
+    return { name: err.name, message: err.message, code: err.code }
+  }
+  if (typeof e === 'string') {
+    return e
+  }
+  if (e && typeof e === 'object') {
+    const obj = e as Record<string, unknown>
+    if (typeof obj.message === 'string') {
+      return {
+        name: typeof obj.name === 'string' ? obj.name : undefined,
+        message: obj.message,
+        code: typeof obj.code === 'string' ? obj.code : undefined
+      }
+    }
+    try {
+      return JSON.stringify(e)
+    } catch {
+      return 'Unknown Error'
+    }
+  }
+  return 'Unknown Error'
+}
+
 function ipcErrorWrapper<T>( // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fn: (...args: any[]) => Promise<T> // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): (...args: any[]) => Promise<T | { invokeError: unknown }> {
+): (...args: any[]) => Promise<T | { invokeError: IpcErrorPayload | string }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (...args: any[]) => {
     try {
       return await fn(...args)
     } catch (e) {
-      if (e && typeof e === 'object') {
-        if ('message' in e) {
-          return { invokeError: e.message }
-        } else {
-          return { invokeError: JSON.stringify(e) }
-        }
-      }
-      if (e instanceof Error || typeof e === 'string') {
-        return { invokeError: e }
-      }
-      return { invokeError: 'Unknown Error' }
+      return { invokeError: serializeIpcError(e) }
     }
   }
 }

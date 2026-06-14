@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import EditableList from '../base/base-list-editor'
@@ -65,7 +65,7 @@ const ControllerSetting: React.FC = () => {
       await mihomoUpgradeUI()
       new Notification(t('mihomo.controllerSettings.panelUpdateSuccess'))
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       setUpgrading(false)
     }

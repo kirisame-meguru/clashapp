@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
 import { Switch } from '@renderer/components/ui/switch'
@@ -111,14 +111,14 @@ const Sysproxy: React.FC = () => {
       try {
         await triggerSysProxy(true, onlyActiveDevice)
       } catch (e) {
-        toast.error(`${e}`)
+        notifyError(e)
         await patchAppConfig({ sysProxy: { enable: false } })
       }
     } else if (prevEnable) {
       try {
         await triggerSysProxy(false, onlyActiveDevice)
       } catch (e) {
-        toast.error(`${e}`)
+        notifyError(e)
       }
     }
   }
@@ -137,7 +137,7 @@ const Sysproxy: React.FC = () => {
       window.electron.ipcRenderer.send('updateFloatingWindow')
       window.electron.ipcRenderer.send('updateTrayMenu')
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     }
   }
 

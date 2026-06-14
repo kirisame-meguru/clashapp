@@ -1,12 +1,39 @@
 import { TitleBarOverlayOptions } from 'electron'
 
+interface IpcErrorPayload {
+  name?: string
+  message: string
+  code?: string
+}
+
+// Rebuild a real Error from the main process's structured payload so call sites
+// get `.message`, `.code`, `.name` and `instanceof Error`. Bare strings (and
+// any unrecognized shape) are surfaced as-is.
+function deserializeIpcError(invokeError: unknown): unknown {
+  if (
+    invokeError !== null &&
+    typeof invokeError === 'object' &&
+    typeof (invokeError as IpcErrorPayload).message === 'string'
+  ) {
+    const payload = invokeError as IpcErrorPayload
+    const error = new Error(payload.message) as Error & { code?: string }
+    if (payload.name) error.name = payload.name
+    if (payload.code) error.code = payload.code
+    return error
+  }
+  return invokeError
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ipcErrorWrapper(response: any): any {
-  if (typeof response === 'object' && 'invokeError' in response) {
-    throw response.invokeError
-  } else {
-    return response
+  if (response !== null && typeof response === 'object' && 'invokeError' in response) {
+    const error = deserializeIpcError(response.invokeError)
+    // Central place to trace IPC failures — open DevTools to see which call and
+    // error code produced a given toast.
+    console.error('[ipc] invoke failed:', error)
+    throw error
   }
+  return response
 }
 
 export async function mihomoVersion(): Promise<ControllerVersion> {
@@ -499,9 +526,8 @@ export async function setMainLanguage(lang: string): Promise<void> {
 
 // Override window.alert to use toast notifications instead of system dialogs
 async function alert<T>(msg: T): Promise<void> {
-  const { toast } = await import('sonner')
-  const msgStr = typeof msg === 'string' ? msg : JSON.stringify(msg)
-  toast.error(msgStr)
+  const { notifyError } = await import('./notify')
+  notifyError(msg)
 }
 
 window.alert = alert

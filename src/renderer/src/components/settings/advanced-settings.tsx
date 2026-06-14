@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import { Button } from '@renderer/components/ui/button'
@@ -105,7 +105,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
         envType: next
       })
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     }
   }
 
@@ -221,7 +221,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
                 })
                 await restartCore()
               } catch (e) {
-                toast.error(`${e}`)
+                notifyError(e)
               }
             }}
           >
@@ -261,7 +261,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
               await patchControledMihomoConfig({})
               await mihomoHotReloadConfig()
             } catch (e) {
-              toast.error(`${e}`)
+              notifyError(e)
             }
           }}
         />
@@ -284,7 +284,7 @@ const AdvancedSettings: React.FC<AdvancedSettingsProps> = (props) => {
               await patchControledMihomoConfig({})
               await mihomoHotReloadConfig()
             } catch (e) {
-              toast.error(`${e}`)
+              notifyError(e)
             }
           }}
         />

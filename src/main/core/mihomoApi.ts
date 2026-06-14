@@ -9,6 +9,7 @@ import { floatingWindow } from '../resolve/floatingWindow'
 import { mihomoIpcPath } from '../utils/dirs'
 import { safeSend } from '../utils/safeSend'
 import { debounce } from '../utils/debounce'
+import { normalizeApiError } from '../utils/apiError'
 
 let axiosIns: AxiosInstance = null!
 let mihomoTrafficWs: WebSocket | null = null
@@ -43,7 +44,7 @@ export const getAxios = async (force: boolean = false): Promise<AxiosInstance> =
       if (error.response && error.response.data) {
         return Promise.reject(error.response.data)
       }
-      return Promise.reject(error)
+      return Promise.reject(normalizeApiError(error, 'core'))
     }
   )
   return axiosIns

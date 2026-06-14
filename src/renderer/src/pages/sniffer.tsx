@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import { Button } from '@renderer/components/ui/button'
 import { Input } from '@renderer/components/ui/input'
 import { Switch } from '@renderer/components/ui/switch'
@@ -64,7 +64,7 @@ const Sniffer: React.FC = () => {
       setChanged(false)
       await patchControledMihomoConfig(patch)
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     }
   }
 

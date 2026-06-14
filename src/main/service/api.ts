@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios'
 import { KeyManager } from './key'
 import { serviceIpcPath } from '../utils/dirs'
 import { t } from '../utils/i18n'
+import { normalizeApiError } from '../utils/apiError'
 
 let serviceAxios: AxiosInstance | null = null
 let keyManager: KeyManager | null = null
@@ -36,7 +37,7 @@ export const initServiceAPI = (km: KeyManager): void => {
       if (error.response?.data) {
         return Promise.reject(error.response.data)
       }
-      return Promise.reject(error)
+      return Promise.reject(normalizeApiError(error, 'service'))
     }
   )
 }

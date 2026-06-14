@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+import { getErrorMessage } from '@renderer/utils/notify'
 import { Button } from '@renderer/components/ui/button'
 import { Kbd, KbdGroup } from '@renderer/components/ui/kbd'
 import { useTranslation } from 'react-i18next'
@@ -238,7 +239,7 @@ const ShortcutInput: React.FC<{
                 toast.error(t('settings.shortcuts.registerFailed'))
               }
             } catch (e) {
-              toast.error(`${t('settings.shortcuts.registerFailedWithError')}${e}`)
+              toast.error(`${t('settings.shortcuts.registerFailedWithError')}${getErrorMessage(e)}`)
             }
           }}
         >

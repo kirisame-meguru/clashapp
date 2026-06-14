@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import {
   Dialog,
   DialogClose,
@@ -99,7 +99,7 @@ const ServiceModal: React.FC<Props> = (props) => {
         await checkServiceConnection()
         return
       }
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       setLoading(false)
     }

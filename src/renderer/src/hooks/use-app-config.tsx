@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react'
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import useSWR from 'swr'
 import { getAppConfig, patchAppConfig as patch } from '@renderer/utils/ipc'
 
@@ -18,7 +18,7 @@ export const AppConfigProvider: React.FC<{ children: ReactNode }> = ({ children 
     try {
       await patch(value)
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e, { id: 'patchAppConfig' })
     } finally {
       mutateAppConfig()
     }

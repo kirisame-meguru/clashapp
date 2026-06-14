@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import SettingCard from '../base/base-setting-card'
 import SettingItem from '../base/base-setting-item'
 import { Button } from '@renderer/components/ui/button'
@@ -65,7 +65,7 @@ const GeneralConfig: React.FC<GeneralConfigProps> = (props) => {
                   await disableAutoRun()
                 }
               } catch (e) {
-                toast.error(`${e}`)
+                notifyError(e)
               } finally {
                 mutateEnable()
               }

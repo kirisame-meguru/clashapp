@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { notifyError } from '@renderer/utils/notify'
 import {
   Dialog,
   DialogClose,
@@ -74,7 +74,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
       }
       closeRef.current?.click()
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     } finally {
       setSaving(false)
     }
@@ -107,7 +107,7 @@ const EditInfoModal: React.FC<Props> = (props) => {
         })
       }
     } catch (e) {
-      toast.error(`${e}`)
+      notifyError(e)
     }
   }
 
