@@ -100,6 +100,8 @@ const zhCN: LocaleTranslations = {
     updateAvailable: '发现新版本',
     currentVersion: '当前版本',
     latestVersion: '最新版本',
+    newVersion: '新版本',
+    changelogHeader: '新版本更新内容：',
     downloadUpdate: '下载更新',
     later: '稍后'
   },
@@ -250,6 +252,8 @@ const enUS: LocaleTranslations = {
     updateAvailable: 'Update available',
     currentVersion: 'Current version',
     latestVersion: 'Latest version',
+    newVersion: 'new version',
+    changelogHeader: 'New version changes:',
     downloadUpdate: 'Download update',
     later: 'Later'
   },
@@ -400,6 +404,8 @@ const ruRU: LocaleTranslations = {
     updateAvailable: 'Доступно обновление',
     currentVersion: 'Текущая версия',
     latestVersion: 'Новая версия',
+    newVersion: 'новая версия',
+    changelogHeader: 'Изменения в новой версии:',
     downloadUpdate: 'Скачать обновление',
     later: 'Позже'
   },

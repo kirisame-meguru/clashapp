@@ -32,7 +32,10 @@ module.exports = [
   {
     files: ['**/*.cjs', '**/*.mjs', '**/tailwind.config.js', '**/postcss.config.js'],
     rules: {
-      '@typescript-eslint/no-require-imports': 'off'
+      '@typescript-eslint/no-require-imports': 'off',
+      // Plain-JS build scripts can't carry TS return annotations; the rule is already
+      // off for .ts/.tsx below.
+      '@typescript-eslint/explicit-function-return-type': 'off'
     }
   },
 

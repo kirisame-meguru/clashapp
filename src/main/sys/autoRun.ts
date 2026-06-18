@@ -5,6 +5,17 @@ import { existsSync } from 'fs'
 import { promisify } from 'util'
 import path from 'path'
 import { packageName, productName } from '../../shared/branding'
+import { checkLogonTaskSync, createLogonTaskSync, deleteLogonTaskSync } from './misc'
+import { getAppConfig } from '../config'
+
+// In elevated mode (the default) Windows autostart is the logon-triggered scheduled task
+// so the app starts elevated with no UAC prompt. In service mode the core runs as a
+// Windows service and the app itself doesn't need elevation, so the plain Startup-folder
+// shortcut is used instead.
+async function isWindowsServiceMode(): Promise<boolean> {
+  const { corePermissionMode } = await getAppConfig()
+  return corePermissionMode === 'service'
+}
 
 const appSlug = packageName
 const windowsStartupShortcutName = `${productName}.lnk`
@@ -31,7 +42,10 @@ function windowsStartupShortcutPath(): string {
 
 export async function checkAutoRun(): Promise<boolean> {
   if (process.platform === 'win32') {
-    return existsSync(windowsStartupShortcutPath())
+    if (await isWindowsServiceMode()) {
+      return existsSync(windowsStartupShortcutPath())
+    }
+    return checkLogonTaskSync()
   }
 
   if (process.platform === 'darwin') {
@@ -50,6 +64,13 @@ export async function checkAutoRun(): Promise<boolean> {
 }
 
 export async function enableAutoRun(): Promise<void> {
+  if (process.platform === 'win32' && !(await isWindowsServiceMode())) {
+    // Elevated mode: autostart via the logon-triggered elevated task. Remove any legacy
+    // Startup-folder shortcut so we don't also launch a redundant non-elevated instance.
+    await rm(windowsStartupShortcutPath(), { force: true }).catch(() => undefined)
+    createLogonTaskSync()
+    return
+  }
   if (process.platform === 'win32') {
     const execFilePromise = promisify(execFile)
     const startupShortcutPath = windowsStartupShortcutPath()
@@ -132,6 +153,9 @@ Categories=Utility;
 export async function disableAutoRun(): Promise<void> {
   if (process.platform === 'win32') {
     const execFilePromise = promisify(execFile)
+    // Remove both autostart mechanisms: the elevated logon task and any legacy
+    // Startup-folder shortcut / registry Run entries.
+    deleteLogonTaskSync()
     await rm(windowsStartupShortcutPath(), { force: true })
     try {
       await execFilePromise('reg.exe', [

@@ -13,6 +13,7 @@ fs.writeFileSync(
     '; AUTO-GENERATED from branding.json by electron-builder.config.cjs - do not edit.',
     `!define APP_TASK_NAME "${branding.packageName}"`,
     `!define APP_TASK_RUNNER_NAME "${branding.packageName}-run"`,
+    `!define APP_LOGON_TASK_NAME "${branding.packageName}-logon"`,
     ''
   ].join('\n')
 )

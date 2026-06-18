@@ -90,7 +90,14 @@ const AppSidebar: React.FC = () => {
                       tooltip={t(item.i18nKey)}
                       isActive={isActive}
                       data-guide={item.key === 'main' ? 'sidebar-home-button' : undefined}
-                      onClick={() => navigate(item.path)}
+                      onClick={() => {
+                        // Clicking Settings again while on a Settings page/subpage returns Home.
+                        if (item.key === 'settings' && location.pathname.startsWith('/settings')) {
+                          navigate('/home')
+                        } else {
+                          navigate(item.path)
+                        }
+                      }}
                       onDoubleClick={
                         item.key === 'profile' ? () => setShowRuntimeConfig(true) : undefined
                       }

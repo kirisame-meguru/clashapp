@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { notifyError } from '@renderer/utils/notify'
 import {
   Dialog,
@@ -91,6 +91,26 @@ const EditInfoModal: React.FC<Props> = (props) => {
       // clipboard access denied
     }
   }
+
+  // On opening the import dialog, auto-fill the URL from the clipboard when it
+  // holds a valid link, so a copied subscription needs no extra paste click.
+  useEffect(() => {
+    if (!isNew || isLocal) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const text = (await navigator.clipboard.readText()).trim()
+        if (!cancelled && text && isValidUrl(text)) {
+          setValues((prev) => (prev.url ? prev : { ...prev, url: text }))
+        }
+      } catch {
+        // clipboard access denied
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleSelectFile = async (): Promise<void> => {
     try {

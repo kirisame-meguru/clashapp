@@ -85,9 +85,55 @@ function pickDownloadUrl(release: GithubRelease): string {
   return release.html_url
 }
 
-function formatChangelog(body: string | undefined): string {
+function normalizeChangelog(body: string | undefined): string {
   if (!body) return ''
-  const normalized = body.trim()
+  // Drop the build-appended "### Download link：" section (badge HTML).
+  const cutIdx = body.search(/^#{1,6}\s+.*Download link/im)
+  let source = cutIdx >= 0 ? body.slice(0, cutIdx) : body
+
+  // Defensive: a release body holds one version's notes, but if a second
+  // "## x.y.z" heading is present, keep only the topmost section.
+  const lines = source.split('\n')
+  const verRe = /^#{1,6}\s+v?\d+\.\d+\.\d+/
+  const firstVer = lines.findIndex((l) => verRe.test(l))
+  if (firstVer >= 0) {
+    const nextVer = lines.findIndex((l, i) => i > firstVer && verRe.test(l))
+    if (nextVer >= 0) source = lines.slice(0, nextVer).join('\n')
+  }
+
+  const out: string[] = []
+  let lastWasHeading = false
+  for (const raw of source.split('\n')) {
+    const line = raw.replace(/\s+$/, '')
+    if (verRe.test(line)) {
+      // drop the version heading; the dialog shows it as its own line
+      lastWasHeading = false
+      continue
+    }
+    const heading = line.match(/^#{1,6}\s+(.*)$/)
+    if (heading) {
+      // "### Subheading" -> "- Subheading"
+      if (out.length && out[out.length - 1] !== '') out.push('')
+      out.push(`- ${heading[1].trim()}`)
+      lastWasHeading = true
+      continue
+    }
+    if (line.trim() === '') {
+      // collapse blanks; drop the blank that follows a heading
+      if (lastWasHeading || !out.length || out[out.length - 1] === '') continue
+      out.push('')
+      continue
+    }
+    const bullet = line.match(/^\s*[-*]\s+(.*)$/)
+    out.push(bullet ? bullet[1] : line)
+    lastWasHeading = false
+  }
+  while (out.length && out[out.length - 1] === '') out.pop()
+  return out.join('\n')
+}
+
+function formatChangelog(body: string | undefined): string {
+  const normalized = normalizeChangelog(body)
   if (normalized.length <= MAX_CHANGELOG_LENGTH) return normalized
   return `${normalized.slice(0, MAX_CHANGELOG_LENGTH).trimEnd()}\n...`
 }
@@ -123,12 +169,8 @@ export async function checkForAppUpdates(parent?: BrowserWindow | null): Promise
     const options: MessageBoxOptions = {
       type: 'info',
       title: t('dialog.updateAvailable'),
-      message: `${t('dialog.updateAvailable')}: ${latestVersion}`,
-      detail: [
-        `${t('dialog.currentVersion')}: ${currentVersion}`,
-        `${t('dialog.latestVersion')}: ${latestVersion}`,
-        changelog
-      ].filter(Boolean).join('\n\n'),
+      message: `${t('dialog.currentVersion')}: ${currentVersion}, ${t('dialog.newVersion')}: ${latestVersion}.`,
+      detail: changelog ? `${t('dialog.changelogHeader')}\n${changelog}` : '',
       buttons: [t('dialog.downloadUpdate'), t('dialog.later')],
       defaultId: 0,
       cancelId: 1,

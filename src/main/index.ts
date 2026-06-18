@@ -13,7 +13,13 @@ import { init } from './utils/init'
 import path, { join } from 'path'
 import { initShortcut } from './resolve/shortcut'
 import { spawn } from 'child_process'
-import { createElevateTaskSync, runElevateTaskSync } from './sys/misc'
+import {
+  createElevateTaskSync,
+  createLogonTaskSync,
+  logElevation,
+  runElevateTaskSync,
+  tryElevateViaUAC
+} from './sys/misc'
 import { initProfileUpdater } from './core/profileUpdater'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { controledMihomoConfigPath, exePath, taskDir } from './utils/dirs'
@@ -96,6 +102,19 @@ async function scheduleLightweightMode(): Promise<void> {
 
 const syncConfig = getAppConfigSync()
 
+// Installer-invoked while already elevated: create the elevation tasks (on-demand +
+// logon autostart) so the first post-install launch can elevate silently, then exit.
+// Reuses the JS task logic instead of duplicating the task XML inside NSIS.
+if (process.platform === 'win32' && process.argv.includes('--register-elevate-task')) {
+  try {
+    createElevateTaskSync()
+    createLogonTaskSync()
+  } catch (e) {
+    logElevation(`register-elevate-task failed: ${e}`)
+  }
+  process.exit(0)
+}
+
 if (
   process.platform === 'win32' &&
   !is.dev &&
@@ -104,12 +123,23 @@ if (
 ) {
   try {
     createElevateTaskSync()
-  } catch {
-    // Only use the runner when the registered task points to this exact build.
-    // Stale tasks from dev/old builds can point to a deleted executable.
+  } catch (createErr) {
+    // Non-admin run: creating a HighestAvailable task is denied here. Don't swallow —
+    // record why so fresh-boot/install failures are diagnosable.
+    logElevation(`createElevateTaskSync failed (expected when non-admin): ${createErr}`)
+    // Prefer the silent scheduled-task elevation when a valid task points to this build.
     if (runElevateTaskSync(process.argv.slice(1))) {
       app.exit()
+    } else if (
+      !process.argv.includes('elevated-retry') &&
+      tryElevateViaUAC([...process.argv.slice(1), 'elevated-retry'])
+    ) {
+      // No usable task, but the user accepted the UAC prompt; the elevated instance
+      // takes over and re-registers the tasks. Skip on a retry to avoid any loop.
+      app.exit()
     } else {
+      // No task and the user declined UAC (or it failed): fall back to the in-app dialog.
+      logElevation('elevation unavailable; showing admin-required dialog')
       needsFirstRunAdmin = true
     }
   }
