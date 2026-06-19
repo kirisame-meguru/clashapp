@@ -305,7 +305,7 @@ const resolveSparkleService = () => {
 const resolveRunner = () =>
   resolveResource({
     file: 'koala-clash-run.exe',
-    downloadURL: `https://github.com/coolcoala/koala-clash-run/releases/download/${arch}/koala-clash-run.exe`
+    downloadURL: `https://github.com/kirisame-meguru/clashapp-run/releases/download/${arch}/koala-clash-run.exe`
   })
 
 const resolve7zip = () =>
