@@ -19,7 +19,7 @@ import { packageName, productName } from '../../shared/branding'
 
 const elevateTaskName = `${packageName}-run`
 const elevateTaskRunner = `${packageName}-run.exe`
-const sourceTaskRunner = 'koala-clash-run.exe'
+const sourceTaskRunner = 'clashapp-run.exe'
 const logonTaskName = `${packageName}-logon`
 
 // Append a timestamped line to a durable elevation diagnostics log. Never throws —
