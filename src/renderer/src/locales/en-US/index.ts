@@ -481,6 +481,11 @@ export default {
       enableProfiles: 'Enable <icon/> My Subscription tab',
       enableProxies: 'Enable <icon/> Proxy Groups tab'
     },
+    subscription: {
+      showTrafficUsage: 'Show traffic usage stats',
+      subscriptionUrl: 'Subscription URL:',
+      apply: 'Apply'
+    },
     general: {
       autoStart: 'Auto Start',
       silentStart: 'Silent Start',

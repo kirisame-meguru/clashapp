@@ -55,7 +55,8 @@ const Home: React.FC = () => {
     proxyMode = false,
     onlyActiveDevice = false,
     autoCloseConnection = true,
-    globalModeToggle = false
+    globalModeToggle = false,
+    showTrafficUsage = true
   } = appConfig || {}
   const { enable: writeSysProxy = true, mode: sysProxyMode } = sysProxy || {}
   const { controledMihomoConfig, patchControledMihomoConfig } = useControledMihomoConfig()
@@ -348,7 +349,7 @@ const Home: React.FC = () => {
                   {currentProfile.announce}
                 </div>
               )}
-              {subscription && (
+              {subscription && showTrafficUsage && (
                 <div className="mt-3 border-t border-stroke/65 pt-3">
                   <div className="grid grid-cols-3 gap-3">
                     <div className="flex flex-col items-center gap-1 text-center">
@@ -378,7 +379,7 @@ const Home: React.FC = () => {
           )}
 
           <div className="flex min-h-0 flex-col items-center justify-start py-3">
-            {!subscription && (
+            {(!subscription || !showTrafficUsage) && (
               <div className="mb-3 flex h-6 items-center justify-center">
                 <CharacterMorph
                   texts={[status]}

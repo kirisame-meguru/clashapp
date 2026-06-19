@@ -77,6 +77,8 @@ interface AppConfig {
   proxyMode: boolean
   /** show the Global outbound-mode toggle on the Home screen */
   globalModeToggle?: boolean
+  /** show the subscription traffic usage stats panel on the Home screen */
+  showTrafficUsage?: boolean
   maxLogDays: number
   userAgent?: string
   delayTestConcurrency?: number

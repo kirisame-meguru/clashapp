@@ -547,6 +547,11 @@ export default {
       enableProfiles: '启用 <icon/> 我的订阅标签',
       enableProxies: '启用 <icon/> 代理组标签'
     },
+    subscription: {
+      showTrafficUsage: '显示流量使用统计',
+      subscriptionUrl: '订阅链接：',
+      apply: '应用'
+    },
     general: {
       autoStart: '开机自启',
       silentStart: '静默启动',

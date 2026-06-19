@@ -1,4 +1,5 @@
 import BasePage from '@renderer/components/base/base-page'
+import SubscriptionConfig from '@renderer/components/settings/subscription-config'
 import GeneralConfig from '@renderer/components/settings/general-config'
 import AdvancedSettings from '@renderer/components/settings/advanced-settings'
 import Actions from '@renderer/components/settings/actions'
@@ -16,6 +17,7 @@ const Settings: React.FC = () => {
 
   return (
     <BasePage title={t('pages.settings.title')}>
+      <SubscriptionConfig />
       <TabSwitches />
       <ProxySwitches />
       <GeneralConfig showHiddenSettings={showHiddenSettings} />

@@ -1,3 +1,12 @@
+## 0.0.6
+
+Fixes the broken elevation task runner after the run-repo move.
+
+### Fixes
+
+- fixed the bundled elevation task runner shipping as a 9-byte "Not Found" stub: the build requested `koala-clash-run.exe` from `kirisame-meguru/clashapp-run`, but the rebranded release asset is named `clashapp-run.exe`, so GitHub returned a 404 body that was written to disk as the executable
+- made the prepare download step fail on a non-2xx response instead of silently saving the error body as the asset
+
 ## 0.0.3
 
 Reworks Windows elevation and restores cross-platform CI builds.

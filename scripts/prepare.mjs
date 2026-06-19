@@ -244,6 +244,13 @@ async function downloadFile(url, path) {
     method: 'GET',
     headers: { 'Content-Type': 'application/octet-stream' }
   })
+  // Fail loudly on a non-2xx response. Without this, GitHub's 404 body
+  // ("Not Found", 9 bytes) gets written to disk as if it were the asset and
+  // silently shipped — exactly how a renamed release asset bundled a broken
+  // task runner. Throwing lets the caller's retry loop run and the build fail.
+  if (!response.ok) {
+    throw new Error(`download failed: HTTP ${response.status} ${response.statusText} for "${url}"`)
+  }
   const buffer = await response.arrayBuffer()
   fs.writeFileSync(path, new Uint8Array(buffer))
 
@@ -304,8 +311,8 @@ const resolveSparkleService = () => {
 }
 const resolveRunner = () =>
   resolveResource({
-    file: 'koala-clash-run.exe',
-    downloadURL: `https://github.com/kirisame-meguru/clashapp-run/releases/download/${arch}/koala-clash-run.exe`
+    file: 'clashapp-run.exe',
+    downloadURL: `https://github.com/kirisame-meguru/clashapp-run/releases/download/${arch}/clashapp-run.exe`
   })
 
 const resolve7zip = () =>

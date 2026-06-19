@@ -481,6 +481,11 @@ export default {
       enableProfiles: 'Включить вкладку <icon/> «Моя подписка»',
       enableProxies: 'Включить вкладку <icon/> «Группы прокси»'
     },
+    subscription: {
+      showTrafficUsage: 'Показывать статистику трафика',
+      subscriptionUrl: 'URL подписки:',
+      apply: 'Применить'
+    },
     general: {
       autoStart: 'Автозапуск',
       silentStart: 'Тихий запуск',
