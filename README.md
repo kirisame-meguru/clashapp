@@ -72,6 +72,32 @@ Where:
 - `url` - the url-encoded subscription link (use `encodeURIComponent('...')` in any browser's DevTools)
 - `name` - an optional profile name
 
+## Subscription response headers
+
+When a `remote` profile is fetched or updated, the app inspects the HTTP **response headers** returned by the subscription server and uses them to fill in profile metadata. This lets a subscription server drive the profile's name, logo, update interval, theme, and more.
+
+Headers are matched **case-insensitively by suffix** (the app checks `header.toLowerCase().endsWith(name)`), so any vendor prefix is accepted — `profile-title`, `X-Profile-Title`, and `Anything-Profile-Title` are all treated the same. The canonical names are listed below.
+
+| Header | Type | Effect |
+|---|---|---|
+| `profile-title` | string | Sets the profile display name. A `base64:`-prefixed value is base64-decoded as UTF-8. |
+| `content-disposition` | string | Fallback for the name when `profile-title` is absent and the name is still the default `Remote File`; the `filename=` / `filename*=''` value is parsed. |
+| `profile-web-page-url` | string | Sets the profile's home / dashboard URL. |
+| `profile-update-interval` | number (hours) | Auto-update interval, in hours. Stored internally as minutes (value × 60); when present, the interval is locked against manual edits. |
+| `subscription-userinfo` | string | Traffic stats in the form `upload=…; download=…; total=…; expire=…` (bytes, plus a unix-seconds expiry). Drives the usage / expiry panel. |
+| `profile-logo` | string (URL) | Logo image URL. The image is downloaded (through the profile's proxy when enabled) and embedded as a base64 data URI; falls back to the raw URL if the download fails. |
+| `support-url` | string (URL) | Stored as the profile's support link, and used in the HWID-limit error message (see below). |
+| `global-mode` | boolean | Enables Global outbound mode for the profile. Any value other than `false` (case-insensitive) enables it; `false` disables it. |
+| `announce` | string | Announcement text shown for the profile. Supports a `base64:` prefix; literal `\n` sequences are turned into line breaks. |
+| `custom-css` | string (URL) | URL of a custom CSS theme. Downloaded (through the profile's proxy when enabled) and applied as the profile's theme. |
+| `X-Clashapp-Unsupported-Cfg-Warn` | boolean | Opt this profile in to the "changed settings" warning. Enabled only when the value is exactly `true` (case-insensitive); off by default. |
+| `x-hwid-limit` | boolean | When the value is exactly `true`, the response is treated as an HWID device-limit rejection rather than a config (import fails with an HWID-limit message). |
+| `x-hwid-max-devices-reached` | boolean | Same as `x-hwid-limit`; either header set to `true` triggers the HWID-limit error. The accompanying `support-url` is shown in that message. |
+
+Notes:
+- `X-Clashapp-Unsupported-Cfg-Warn` is the only header that is specific to this fork; the rest follow the conventions used by other Clash / Mihomo clients.
+- Boolean headers are compared as plain strings. `global-mode` and `X-Clashapp-Unsupported-Cfg-Warn` are lower-cased before comparison, while the two `x-hwid-*` headers require the exact string `true`.
+
 ## Development
 
 ### Requirements
