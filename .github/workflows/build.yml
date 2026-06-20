@@ -245,7 +245,11 @@ jobs:
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}${{ matrix.format && '-' || '' }}${{ matrix.format || '' }}
           path: |
-            dist/*.{exe,7z,deb,rpm,pkg}
+            dist/*.exe
+            dist/*.7z
+            dist/*.deb
+            dist/*.rpm
+            dist/*.pkg
             dist/*.pkg.tar.xz
             !dist/*.plist
             !dist/*blockmap*
