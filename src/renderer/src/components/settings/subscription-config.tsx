@@ -1,18 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import SettingCard from '../base/base-setting-card'
-import SettingItem from '../base/base-setting-item'
-import { Switch } from '@renderer/components/ui/switch'
 import { Input } from '@renderer/components/ui/input'
 import { Button } from '@renderer/components/ui/button'
 import { Spinner } from '@renderer/components/ui/spinner'
-import { useAppConfig } from '@renderer/hooks/use-app-config'
 import { useProfileConfig } from '@renderer/hooks/use-profile-config'
 import { useTranslation } from 'react-i18next'
 
 const SubscriptionConfig: React.FC = () => {
   const { t } = useTranslation()
-  const { appConfig, patchAppConfig } = useAppConfig()
-  const { showTrafficUsage = true } = appConfig || {}
   const { profileConfig, addProfileItem } = useProfileConfig()
 
   const firstProfile = profileConfig?.items?.[0]
@@ -44,12 +39,6 @@ const SubscriptionConfig: React.FC = () => {
 
   return (
     <SettingCard>
-      <SettingItem title={t('settings.subscription.showTrafficUsage')} divider>
-        <Switch
-          checked={showTrafficUsage}
-          onCheckedChange={(value) => patchAppConfig({ showTrafficUsage: value })}
-        />
-      </SettingItem>
       <div className="flex flex-col gap-2">
         <h4 className="text-md whitespace-nowrap">{t('settings.subscription.subscriptionUrl')}</h4>
         <div className="flex gap-2">

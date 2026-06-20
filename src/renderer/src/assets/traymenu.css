@@ -2,73 +2,81 @@
 @import 'tw-animate-css';
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --radius: 0.5rem;
-  --background: #f5f8fc;
-  --foreground: #0e1f38;
-  --card: #ffffff;
-  --card-foreground: #0e1f38;
-  --popover: #ffffff;
-  --popover-foreground: #0e1f38;
-  --primary: #1f4d83;
-  --primary-foreground: #ffffff;
-  --secondary: #e3edf9;
-  --secondary-foreground: #1b3a5e;
-  --muted: #eef3fa;
-  --muted-foreground: #5b7390;
-  --stroke-power-on: #8fbdec;
-  --gradient-start-power-on: #2f6db0;
-  --gradient-end-power-on: #1f4d83;
-  --stroke: rgb(31 77 131 / 22%);
-  --glass-border: rgb(31 77 131 / 22%);
-  --surface: rgb(255 255 255 / 58%);
-  --shadow-soft: 0 18px 50px rgb(17 37 70 / 12%);
-  --accent: #d7e6f6;
-  --accent-foreground: #1b3a5e;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --border: rgb(31 77 131 / 20%);
-  --input: rgb(31 77 131 / 22%);
-  --ring: #1f4d83;
-  --success: #22c55e;
-  --success-foreground: #ffffff;
-  --warning: #f59e0b;
-  --warning-foreground: #0e1f38;
-  --glow-rgb: 31 77 131;
-}
+/* Default palette. Wrapped in a cascade layer so any theme injected at runtime
+   via webContents.insertCSS — the build-time default-theme.css, a remote
+   custom-css subscription header, or a user-selected theme-hub theme, all of
+   which are unlayered :root/.dark rules — reliably overrides it. Unlayered
+   styles always win over layered ones regardless of specificity or source
+   order, so the injected theme takes precedence. */
+@layer base {
+  :root {
+    --radius: 0.5rem;
+    --background: #f5f8fc;
+    --foreground: #0e1f38;
+    --card: #ffffff;
+    --card-foreground: #0e1f38;
+    --popover: #ffffff;
+    --popover-foreground: #0e1f38;
+    --primary: #1f4d83;
+    --primary-foreground: #ffffff;
+    --secondary: #e3edf9;
+    --secondary-foreground: #1b3a5e;
+    --muted: #eef3fa;
+    --muted-foreground: #5b7390;
+    --stroke-power-on: #8fbdec;
+    --gradient-start-power-on: #2f6db0;
+    --gradient-end-power-on: #1f4d83;
+    --stroke: rgb(31 77 131 / 22%);
+    --glass-border: rgb(31 77 131 / 22%);
+    --surface: rgb(255 255 255 / 58%);
+    --shadow-soft: 0 18px 50px rgb(17 37 70 / 12%);
+    --accent: #d7e6f6;
+    --accent-foreground: #1b3a5e;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --border: rgb(31 77 131 / 20%);
+    --input: rgb(31 77 131 / 22%);
+    --ring: #1f4d83;
+    --success: #22c55e;
+    --success-foreground: #ffffff;
+    --warning: #f59e0b;
+    --warning-foreground: #0e1f38;
+    --glow-rgb: 31 77 131;
+  }
 
-.dark {
-  --background: #0c1a30;
-  --foreground: #eaf2fb;
-  --card: #13294a;
-  --card-foreground: #eaf2fb;
-  --popover: #102541;
-  --popover-foreground: #eaf2fb;
-  --primary: #4f9be8;
-  --primary-foreground: #06101f;
-  --secondary: #1b3457;
-  --secondary-foreground: #dceaf8;
-  --muted: #17304f;
-  --muted-foreground: #9bb4d2;
-  --stroke-power-on: #7db9ef;
-  --gradient-start-power-on: #4f9be8;
-  --gradient-end-power-on: #1f4d83;
-  --stroke: rgb(79 155 232 / 28%);
-  --glass-border: rgb(79 155 232 / 25%);
-  --surface: rgb(19 41 74 / 72%);
-  --shadow-soft: 0 20px 56px rgb(0 0 0 / 38%);
-  --accent: #1d3a60;
-  --accent-foreground: #eaf2fb;
-  --destructive: #f87171;
-  --destructive-foreground: #ffffff;
-  --border: rgb(79 155 232 / 22%);
-  --input: rgb(79 155 232 / 22%);
-  --ring: #7db9ef;
-  --success: #22c55e;
-  --success-foreground: #ffffff;
-  --warning: #fbbf24;
-  --warning-foreground: #06101f;
-  --glow-rgb: 79 155 232;
+  .dark {
+    --background: #0c1a30;
+    --foreground: #eaf2fb;
+    --card: #13294a;
+    --card-foreground: #eaf2fb;
+    --popover: #102541;
+    --popover-foreground: #eaf2fb;
+    --primary: #4f9be8;
+    --primary-foreground: #06101f;
+    --secondary: #1b3457;
+    --secondary-foreground: #dceaf8;
+    --muted: #17304f;
+    --muted-foreground: #9bb4d2;
+    --stroke-power-on: #7db9ef;
+    --gradient-start-power-on: #4f9be8;
+    --gradient-end-power-on: #1f4d83;
+    --stroke: rgb(79 155 232 / 28%);
+    --glass-border: rgb(79 155 232 / 25%);
+    --surface: rgb(19 41 74 / 72%);
+    --shadow-soft: 0 20px 56px rgb(0 0 0 / 38%);
+    --accent: #1d3a60;
+    --accent-foreground: #eaf2fb;
+    --destructive: #f87171;
+    --destructive-foreground: #ffffff;
+    --border: rgb(79 155 232 / 22%);
+    --input: rgb(79 155 232 / 22%);
+    --ring: #7db9ef;
+    --success: #22c55e;
+    --success-foreground: #ffffff;
+    --warning: #fbbf24;
+    --warning-foreground: #06101f;
+    --glow-rgb: 79 155 232;
+  }
 }
 
 @theme inline {
