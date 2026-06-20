@@ -67,7 +67,7 @@ const AppSidebar: React.FC = () => {
           <img
             src={appLogo}
             alt={appName}
-            className="aspect-square size-8 shrink-0 rounded-md object-contain shadow-[0_0_18px_rgba(255,101,132,0.35)]"
+            className="aspect-square size-8 shrink-0 rounded-md object-contain shadow-[0_0_18px_rgb(var(--glow-rgb)/0.35)]"
           />
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <div className="truncate text-sm font-semibold tracking-normal text-sidebar-foreground">

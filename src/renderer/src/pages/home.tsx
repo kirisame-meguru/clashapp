@@ -396,7 +396,7 @@ const Home: React.FC = () => {
               className="relative group transition-transform active:scale-95 cursor-pointer"
             >
               <div
-                className={`size-[7.5rem] rounded-full flex items-center justify-center transition-all duration-300 border backdrop-blur-2xl shadow-[0_18px_48px_rgba(255,101,132,0.20)] ${
+                className={`size-[7.5rem] rounded-full flex items-center justify-center transition-all duration-300 border backdrop-blur-2xl shadow-[0_18px_48px_rgb(var(--glow-rgb)/0.20)] ${
                   isSelected
                     ? 'bg-linear-to-br from-gradient-start-power-on/80 to-gradient-end-power-on/80 border-stroke-power-on'
                     : 'bg-foreground text-background border-foreground/30 hover:brightness-110'
