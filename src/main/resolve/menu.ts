@@ -4,7 +4,7 @@ import { getAppConfig } from '../config'
 import { quitWithoutCore } from '../core/manager'
 import { dataDir, logDir, mihomoCoreDir, mihomoWorkDir } from '../utils/dirs'
 import { t } from '../utils/i18n'
-import { appName } from '../../shared/branding'
+import { appName, repoUrl } from '../../shared/branding'
 
 export async function createApplicationMenu(): Promise<void> {
   if (process.platform !== 'darwin') {
@@ -173,13 +173,13 @@ export async function createApplicationMenu(): Promise<void> {
         {
           label: t('menu.learnMore'),
           click: () => {
-            shell.openExternal('https://github.com/kirisame-meguru/clashapp')
+            shell.openExternal(repoUrl)
           }
         },
         {
           label: t('menu.reportIssue'),
           click: () => {
-            shell.openExternal('https://github.com/kirisame-meguru/clashapp/issues')
+            shell.openExternal(`${repoUrl}/issues`)
           }
         },
         { type: 'separator' },

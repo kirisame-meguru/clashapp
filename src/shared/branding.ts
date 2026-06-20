@@ -16,6 +16,9 @@ export const {
   updateRepo
 } = branding
 
+/** Full GitHub repository URL, e.g. "https://github.com/owner/repo". */
+export const repoUrl = `https://github.com/${updateRepo}`
+
 /** Deep-link prefix, e.g. "clashapp://". */
 export const deepLinkPrefix = `${protocolScheme}://`
 

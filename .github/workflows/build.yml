@@ -245,7 +245,8 @@ jobs:
         with:
           name: ${{ matrix.os }}-${{ matrix.arch }}${{ matrix.format && '-' || '' }}${{ matrix.format || '' }}
           path: |
-            dist/ClashApp*
+            dist/*.{exe,7z,deb,rpm,pkg}
+            dist/*.pkg.tar.xz
             !dist/*.plist
             !dist/*blockmap*
             latest.yml

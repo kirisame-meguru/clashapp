@@ -1,5 +1,7 @@
 import { resolve } from 'path'
+import { readFileSync } from 'fs'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
+import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 // https://github.com/vdesjs/vite-plugin-monaco-editor/issues/21#issuecomment-1827562674
 import monacoEditorPluginModule from 'vite-plugin-monaco-editor'
@@ -15,6 +17,26 @@ const isObjectWithDefaultFunction = (
 const monacoEditorPlugin = isObjectWithDefaultFunction(monacoEditorPluginModule)
   ? monacoEditorPluginModule.default
   : monacoEditorPluginModule
+
+// Window titles are derived from branding.json so a fork only edits that file.
+// Each renderer HTML uses the %RENDERER_TITLE% placeholder; this plugin replaces
+// it per entry at build/serve time (no runtime flash, single source of truth).
+const branding = JSON.parse(readFileSync(resolve('branding.json'), 'utf-8')) as { appName: string }
+
+function brandWindowTitle(): Plugin {
+  return {
+    name: 'brand-window-title',
+    transformIndexHtml(html, ctx): string {
+      const id = ctx.filename.replace(/\\/g, '/')
+      const title = id.endsWith('floating.html')
+        ? `${branding.appName} Floating`
+        : id.endsWith('traymenu.html')
+          ? `${branding.appName} Tray Menu`
+          : branding.appName
+      return html.replace(/%RENDERER_TITLE%/g, title)
+    }
+  }
+}
 
 export default defineConfig({
   main: {
@@ -46,6 +68,7 @@ export default defineConfig({
       }
     },
     plugins: [
+      brandWindowTitle(),
       react(),
       tailwindcss(),
       monacoEditorPlugin({

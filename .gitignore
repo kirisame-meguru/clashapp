@@ -13,3 +13,4 @@ out
 *.tsbuildinfo
 latest.yml
 build/nsis/branding.nsh
+build/generated

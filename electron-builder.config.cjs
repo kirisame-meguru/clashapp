@@ -18,6 +18,24 @@ fs.writeFileSync(
   ].join('\n')
 )
 
+// The Linux/macOS install scripts reference the app by its product name, but they
+// run on the end-user machine where branding.json is unavailable - so the name must
+// be baked in at build time. Each committed script is a template with an
+// @@APP_NAME@@ placeholder; render it into build/generated/ with productName and
+// point electron-builder at the rendered copies. (build/generated is gitignored.)
+const renderInstallScript = (srcRel, outRel) => {
+  const out = path.join(__dirname, outRel)
+  const rendered = fs
+    .readFileSync(path.join(__dirname, srcRel), 'utf8')
+    .replace(/@@APP_NAME@@/g, branding.productName)
+  fs.mkdirSync(path.dirname(out), { recursive: true })
+  fs.writeFileSync(out, rendered)
+  fs.chmodSync(out, 0o755)
+}
+renderInstallScript('build/linux/postinst', 'build/generated/linux/postinst')
+renderInstallScript('build/pkg-scripts/preinstall', 'build/generated/pkg-scripts/preinstall')
+renderInstallScript('build/pkg-scripts/postinstall', 'build/generated/pkg-scripts/postinstall')
+
 module.exports = {
   appId: branding.appId,
   productName: branding.productName,
@@ -88,7 +106,8 @@ module.exports = {
   },
   pkg: {
     allowAnywhere: false,
-    allowCurrentUserHome: false
+    allowCurrentUserHome: false,
+    scripts: 'build/generated/pkg-scripts'
   },
   linux: {
     desktop: {
@@ -103,13 +122,13 @@ module.exports = {
     artifactName: '${productName}_${arch}.${ext}'
   },
   deb: {
-    afterInstall: 'build/linux/postinst'
+    afterInstall: 'build/generated/linux/postinst'
   },
   rpm: {
-    afterInstall: 'build/linux/postinst'
+    afterInstall: 'build/generated/linux/postinst'
   },
   pacman: {
-    afterInstall: 'build/linux/postinst',
+    afterInstall: 'build/generated/linux/postinst',
     artifactName: '${productName}_${arch}.pkg.tar.xz'
   },
   npmRebuild: true,
