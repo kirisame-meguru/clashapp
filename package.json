@@ -1,6 +1,6 @@
 {
   "name": "clashapp",
-  "version": "0.0.8",
+  "version": "1.0.0",
   "description": "ClashApp",
   "main": "./out/main/index.js",
   "author": "kirisame-meguru",

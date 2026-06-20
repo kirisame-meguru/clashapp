@@ -40,7 +40,7 @@ import { applyTheme } from './theme'
 import { t } from '../utils/i18n'
 
 export let tray: Tray | null = null
-let customTrayWindow: BrowserWindow | null = null
+export let customTrayWindow: BrowserWindow | null = null
 
 function createWindowsTrayIcon(enabled: boolean): Electron.NativeImage {
   return nativeImage.createFromPath(enabled ? icoIcon : icoIconOff).resize({

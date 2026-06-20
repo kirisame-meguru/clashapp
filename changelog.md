@@ -1,3 +1,11 @@
+## 1.0.0
+
+Extends the custom theme / `custom-css` system to the custom tray menu.
+
+### Behavior
+
+- injected the active theme (`customTheme`/`custom-css`, including bundled brand-overlay defaults) into the custom tray menu window alongside the main and floating windows, so it now follows the theme's shared `:root`/`.dark` variables instead of only its bundled colors — applied both when the tray opens and live when the theme changes in settings
+
 ## 0.0.8
 
 Centralizes the remaining hardcoded brand strings so a fork only edits `branding.json`.

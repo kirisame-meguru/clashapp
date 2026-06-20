@@ -9,10 +9,12 @@ import { getRuntimeConfig } from '../core/factory'
 import { existsSync } from 'fs'
 import { mainWindow } from '..'
 import { floatingWindow } from './floatingWindow'
+import { customTrayWindow } from './tray'
 import defaultThemeCss from '../../../resources/default-theme.css?raw'
 
 let insertedCSSKeyMain: string | undefined = undefined
 let insertedCSSKeyFloating: string | undefined = undefined
+let insertedCSSKeyTray: string | undefined = undefined
 
 export async function resolveThemes(): Promise<{ key: string; label: string }[]> {
   const files = await readdir(themesDir())
@@ -85,6 +87,14 @@ export async function applyTheme(theme: string): Promise<void> {
   try {
     await floatingWindow?.webContents.removeInsertedCSS(insertedCSSKeyFloating || '')
     insertedCSSKeyFloating = await floatingWindow?.webContents.insertCSS(css)
+  } catch {
+    // ignore
+  }
+  try {
+    if (customTrayWindow && !customTrayWindow.isDestroyed()) {
+      await customTrayWindow.webContents.removeInsertedCSS(insertedCSSKeyTray || '')
+      insertedCSSKeyTray = await customTrayWindow.webContents.insertCSS(css)
+    }
   } catch {
     // ignore
   }
