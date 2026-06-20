@@ -1,0 +1,14 @@
+/*
+ * Bundled default theme.
+ *
+ * Injected (via Electron insertCSS) whenever the active theme is "default.css"
+ * and the user has no override of that name in their themes directory. Upstream
+ * ships this EMPTY on purpose: the compiled main.css already defines the default
+ * look, so layering this on top is a no-op.
+ *
+ * A brand overlay (e.g. bitumi-clash) replaces this file with its own :root /
+ * .dark CSS-variable overrides to ship a different default theme baked into the
+ * build — no `custom-css` subscription response header required. Because it is
+ * injected through the exact same path as a custom-css theme, the result is
+ * identical to delivering it remotely.
+ */

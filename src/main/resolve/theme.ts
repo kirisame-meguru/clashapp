@@ -9,6 +9,7 @@ import { getRuntimeConfig } from '../core/factory'
 import { existsSync } from 'fs'
 import { mainWindow } from '..'
 import { floatingWindow } from './floatingWindow'
+import defaultThemeCss from '../../../resources/default-theme.css?raw'
 
 let insertedCSSKeyMain: string | undefined = undefined
 let insertedCSSKeyFloating: string | undefined = undefined
@@ -63,8 +64,14 @@ export async function importThemes(files: string[]): Promise<void> {
 }
 
 export async function readTheme(theme: string): Promise<string> {
-  if (!existsSync(path.join(themesDir(), theme))) return ''
-  return await readFile(path.join(themesDir(), theme), 'utf-8')
+  const themePath = path.join(themesDir(), theme)
+  if (existsSync(themePath)) return await readFile(themePath, 'utf-8')
+  // `default.css` is virtual (no file on disk). Fall back to the theme bundled
+  // at build time: empty upstream (so the compiled default look shows), but a
+  // brand overlay can replace resources/default-theme.css to ship its own
+  // default theme without needing the `custom-css` subscription header.
+  if (theme === 'default.css') return defaultThemeCss
+  return ''
 }
 
 export async function writeTheme(theme: string, css: string): Promise<void> {
