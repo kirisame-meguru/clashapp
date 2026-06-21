@@ -1,0 +1,33 @@
+# Fork-owned files: always keep THIS fork's version when syncing from upstream.
+#
+# How these paths stay on our side:
+#   - The sync workflow excludes them from the upstream delta entirely, so an
+#     upstream edit to any of them is never part of what gets applied and can
+#     never conflict (see .github/workflows/sync-upstream.yml).
+#   - The `ours` merge driver below resolves them to our side for any manual
+#     `git merge upstream/...` a maintainer runs outside the workflow.
+# This file is the single source of truth for that protected list.
+
+branding.json                         merge=ours
+
+# Fork's README: a trimmed Bitumi Clash landing page, overwritten onto main on
+# every sync in place of upstream's.
+README.md                             merge=ours
+
+# App / installer / tray icons and the in-app logo (the fork's visual identity).
+build/icon.*                          merge=ours
+build/installerIcon*                  merge=ours
+resources/icon*                       merge=ours
+resources/app_icon_source.svg         merge=ours
+src/renderer/src/assets/app-logo.png  merge=ours
+
+# Default theme baked into the build (the fork's purple/coral look). Replaces
+# upstream's empty resources/default-theme.css so the legacy theme ships by
+# default, with no custom-css subscription header required.
+resources/default-theme.css           merge=ours
+
+# Custom tray-menu stylesheet. The tray window is NOT reached by the in-app
+# theme injection (insertCSS targets only the main/floating windows), so its
+# purple look is pinned here as a whole-file override of upstream's navy
+# traymenu.css. Keep its palette in sync with resources/default-theme.css.
+src/renderer/src/assets/traymenu.css  merge=ours

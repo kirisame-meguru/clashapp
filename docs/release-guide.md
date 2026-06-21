@@ -1,98 +1,74 @@
-# ClashApp build and release guide
+# Release guide
 
-⚠️ This guide has not been verified since the ClashApp fork ⚠️
+How to build and publish a ClashApp release. The pipeline is `.github/workflows/build.yml`; local builds use `build_win.ps1`.
 
-This procedure is intended for Windows and the `kirisame-meguru/clashapp` repository.
+## Release model — bump the version on `main`
 
-## 1. Prepare the code
+A normal release needs no manual workflow run. The `Build` workflow has a `push` trigger on `main` scoped to `package.json`; it compares the version at `HEAD` vs `HEAD~1` and, when it changed, builds the full matrix and publishes a GitHub Release.
+
+1. Make sure `main` is up to date and green.
+2. Bump the version and changelog:
+   - `package.json` → `version`: plain semver, **no leading `v`** (`1.2.1`, not `v1.2.1`, not `1.2.1-beta`).
+   - `changelog.md` → add a section titled with the same version, e.g. `## 1.2.1`.
+3. Commit and push to `main`:
+   ```powershell
+   git add package.json changelog.md
+   git commit -m "chore(release): bump version to 1.2.1"
+   git push origin main
+   ```
+4. The workflow detects the bump, runs the build matrix, and the `release` job publishes a GitHub Release tagged `1.2.1` with `latest.yml` and all installers attached.
+
+On next launch the app checks `releases/latest` for `branding.updateRepo`, sees the new version, and prompts users to update.
+
+## Build matrix
+
+One run fans out to (defined in `build.yml`):
+
+- **Windows** x64 + arm64 × `nsis` (installer) and `7z` (portable)
+- **Linux** x64 + arm64 × `deb`, `rpm`, `pacman`
+- **macOS** x64 + arm64 (`pkg`; signed + notarized only when the `APPLE_*` secrets exist, otherwise unsigned)
+
+Artifact names derive from `branding.productName` (e.g. `ClashApp_x64-setup.exe`, `ClashApp_x64-portable.7z`).
+
+## Other workflow triggers
+
+- **Manual dispatch with a version** (`Actions → Build → Run workflow`, type `1.2.1`) — cuts a real release without a version-bump commit. Use this if the push trigger didn't fire.
+- **Manual dispatch with empty version** — publishes a rolling `pre-release` beta (`<next>-beta-<hash>`).
+- **Nightly cron (18:00 UTC)** — builds from `dev` and moves the `nightly` pre-release tag, but only when `dev` has new commits since the last nightly.
+
+## Local build (verify before releasing)
 
 ```powershell
-git status
-git pull origin main
+pnpm typecheck
+.\build_win.ps1                 # x64 NSIS by default; -Arch arm64, -Format 7z|all
 ```
 
-Before a release, update:
-
-- `package.json` -> `version`
-- `changelog.md` -> add a section with the same version, for example `## 1.2.1`
-
-The version must be a plain semver version without the letter `v`: `1.2.1`, `1.3.0`, `2.0.0`.
-
-## 2. Install dependencies from scratch
+Equivalent low-level form (what `build_win.ps1` and CI run):
 
 ```powershell
-$env:SKIP_PREPARE='1'
-npx --yes pnpm@10.33.0 install
-Remove-Item Env:\SKIP_PREPARE
-npx --yes pnpm@10.33.0 prepare --x64
-```
-
-`prepare --x64` downloads the sidecar files for Windows x64. For arm64, use `prepare --arm64`.
-
-## 3. Check the project
-
-```powershell
-npx --yes pnpm@10.33.0 run typecheck
-```
-
-If the types pass, you can build.
-
-## 4. Build the Windows version locally
-
-```powershell
+$env:SKIP_PREPARE='1'; pnpm install; Remove-Item Env:SKIP_PREPARE
+pnpm prepare --x64
 $env:CSC_IDENTITY_AUTO_DISCOVERY='false'
-npx --yes pnpm@10.33.0 run build:win -- --x64
+pnpm build:win -- --x64
 ```
 
-The built files will be in `dist/`:
+Output lands in `dist/` (`ClashApp_x64-setup.exe`, `ClashApp_x64-portable.7z`). Test the installer as a clean upgrade over the previous version — user data lives in `app.getPath('userData')`, so subscriptions/settings must survive the update.
 
-- `ClashApp_x64-setup.exe` - installer
-- `ClashApp_x64-portable.7z` - portable archive
+## Manual release (if Actions is unavailable)
 
-Test the installer with a clean install over the previous version. User data lives in `app.getPath('userData')`, so updating via the installer should not remove subscriptions and settings.
+If GitHub Actions is blocked (e.g. billing):
 
-## 5. Push the changes to GitHub
+1. Build locally (above).
+2. Generate the update manifest: `pnpm updater` → writes `latest.yml`.
+3. `Releases → Draft a new release`:
+   - **Tag / Title:** the version without `v` (e.g. `1.2.1`); **Target:** `main`.
+   - **Description:** the `changelog.md` section.
+   - **Assets:** `latest.yml` + everything in `dist/`.
+4. Publish. The app finds the new version through the GitHub Releases API.
 
-```powershell
-git status
-git add package.json changelog.md src scripts .github docs README.md build
-git commit -m "release 1.2.1"
-git push origin main
-```
+## Safe-update rules
 
-Replace `1.2.1` with the current version.
-
-## 6. Option A: publish a release via GitHub Actions
-
-1. Open GitHub -> `Actions` -> `Build`.
-2. Click `Run workflow`.
-3. In the `Tag version to release` field, enter the version without `v`, for example `1.2.1`.
-4. Run the workflow and wait for it to finish.
-
-The workflow builds the artifacts, creates a GitHub Release, and uploads the files to the release. On its next launch, the app checks `releases/latest`, sees the new version, and prompts the user to download the update.
-
-## 7. Option B: manual release without GitHub Actions
-
-If GitHub Actions is blocked by billing, you can publish a release manually:
-
-```powershell
-npx --yes pnpm@10.33.0 updater
-```
-
-After that, open GitHub -> `Releases` -> `Draft a new release`:
-
-- `Tag`: the version without `v`, for example `1.2.1`
-- `Target`: `main`
-- `Title`: `1.2.1`
-- `Description`: the contents of `changelog.md`
-- `Assets`: upload `latest.yml`, `dist/ClashApp_x64-setup.exe`, `dist/ClashApp_x64-portable.7z`
-
-Publish the release. The app will see the new version through the GitHub Releases API and prompt the user to download the installer.
-
-## 8. What matters for safe updates
-
-- Do not change `appId` in `electron-builder.yml`, otherwise Windows will treat the app as a different product.
-- Do not change `productName` unless necessary, otherwise the installer names and install path may differ.
-- Do not remove migrations or the current `userData` folder; it stores users' subscriptions and settings.
-- Publish releases only to `kirisame-meguru/clashapp`, because the update check looks specifically there.
-- For a public release, use a plain version like `1.2.1`, not `1.2.1-beta`.
+- Don't change `appId` or `productName` (in `branding.json`) — Windows would treat it as a different product, and install paths/names would shift.
+- Don't drop migrations or wipe the `userData` folder — it holds users' subscriptions and settings.
+- Publish only to `branding.updateRepo` (currently `kirisame-meguru/clashapp`) — the update check looks there specifically.
+- For public releases use a plain version (`1.2.1`), not a pre-release suffix.
