@@ -1,3 +1,16 @@
+## 1.0.8
+
+Restores the in-app auto-updater.
+
+### Features
+
+- restored the in-app auto-update mechanism: an update banner and changelog modal, with in-app download, SHA-256 verification, and install — replacing the previous prompt that only opened the release page in a browser
+- added an "Auto check updates" setting that polls GitHub releases periodically, alongside the manual "Check for updates" action in settings
+
+### Build & release
+
+- replaced the version heading with a separator in generated GitHub release notes
+
 ## 1.0.7
 
 Maintenance release — release-tooling and documentation fixes; no functional app changes since 1.0.6.
