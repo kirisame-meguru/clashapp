@@ -16,6 +16,12 @@ let insertedCSSKeyMain: string | undefined = undefined
 let insertedCSSKeyFloating: string | undefined = undefined
 let insertedCSSKeyTray: string | undefined = undefined
 
+// applyTheme is fired from multiple sources during startup (main `ready-to-show` and the
+// renderer's mount effect) and from multiple windows. The insertedCSSKey* bookkeeping is
+// remove-then-reassign and not atomic, so concurrent calls can interleave and orphan an
+// inserted stylesheet or clobber the tracked key. Serialize all calls behind a promise chain.
+let applyThemeQueue: Promise<void> = Promise.resolve()
+
 export async function resolveThemes(): Promise<{ key: string; label: string }[]> {
   const files = await readdir(themesDir())
   const themes = await Promise.all(
@@ -81,23 +87,28 @@ export async function writeTheme(theme: string, css: string): Promise<void> {
 }
 
 export async function applyTheme(theme: string): Promise<void> {
-  const css = await readTheme(theme)
-  await mainWindow?.webContents.removeInsertedCSS(insertedCSSKeyMain || '')
-  insertedCSSKeyMain = await mainWindow?.webContents.insertCSS(css)
-  try {
-    await floatingWindow?.webContents.removeInsertedCSS(insertedCSSKeyFloating || '')
-    insertedCSSKeyFloating = await floatingWindow?.webContents.insertCSS(css)
-  } catch {
-    // ignore
-  }
-  try {
-    if (customTrayWindow && !customTrayWindow.isDestroyed()) {
-      await customTrayWindow.webContents.removeInsertedCSS(insertedCSSKeyTray || '')
-      insertedCSSKeyTray = await customTrayWindow.webContents.insertCSS(css)
+  const run = applyThemeQueue.then(async () => {
+    const css = await readTheme(theme)
+    await mainWindow?.webContents.removeInsertedCSS(insertedCSSKeyMain || '')
+    insertedCSSKeyMain = await mainWindow?.webContents.insertCSS(css)
+    try {
+      await floatingWindow?.webContents.removeInsertedCSS(insertedCSSKeyFloating || '')
+      insertedCSSKeyFloating = await floatingWindow?.webContents.insertCSS(css)
+    } catch {
+      // ignore
     }
-  } catch {
-    // ignore
-  }
+    try {
+      if (customTrayWindow && !customTrayWindow.isDestroyed()) {
+        await customTrayWindow.webContents.removeInsertedCSS(insertedCSSKeyTray || '')
+        insertedCSSKeyTray = await customTrayWindow.webContents.insertCSS(css)
+      }
+    } catch {
+      // ignore
+    }
+  })
+  // Keep the queue alive even if this run rejects, so one failure doesn't wedge later calls.
+  applyThemeQueue = run.catch(() => {})
+  return run
 }
 
 export async function downloadCustomCss(

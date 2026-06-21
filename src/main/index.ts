@@ -9,6 +9,7 @@ import pngIcon from '../../resources/icon.png?asset'
 import icoIcon from '../../resources/icon.ico?asset'
 import { createTray } from './resolve/tray'
 import { createApplicationMenu } from './resolve/menu'
+import { applyTheme } from './resolve/theme'
 import { init } from './utils/init'
 import path, { join } from 'path'
 import { initShortcut } from './resolve/shortcut'
@@ -559,10 +560,19 @@ export async function createWindow(appConfig?: AppConfig): Promise<void> {
       mainWindow.setWindowButtonVisibility(false)
     }
     mainWindow.on('ready-to-show', async () => {
-      const { silentStart = false } = await getAppConfig()
+      const { silentStart = false } = config
       if (!silentStart || pendingDeepLink) {
         if (quitTimeout) {
           clearTimeout(quitTimeout)
+        }
+        // Inject the resolved theme while the window is still offscreen (show:false)
+        // so the first visible frame is already skinned — without this the navy
+        // `@layer base` default paints for a frame before the renderer's effect injects
+        // the real theme, causing a startup flash. Guard so a theme error never blocks show().
+        try {
+          await applyTheme(config.customTheme || 'default.css')
+        } catch {
+          // ignore — fall through and show the window regardless
         }
         windowShown = true
         mainWindow?.show()

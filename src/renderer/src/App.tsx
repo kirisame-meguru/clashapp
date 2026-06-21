@@ -54,8 +54,12 @@ const App: React.FC = () => {
   }, [appTheme, systemTheme])
 
   useEffect(() => {
+    // Wait for the real config before applying — the main process already injects the
+    // resolved theme before showing the window, and applying 'default.css' on the initial
+    // undefined render would re-inject a transient default and flash for disk-theme users.
+    if (!appConfig) return
     applyTheme(customTheme || 'default.css')
-  }, [customTheme])
+  }, [appConfig, customTheme])
 
   const [showQuitConfirm, setShowQuitConfirm] = useState(false)
   const [showAdminRequired, setShowAdminRequired] = useState(false)
