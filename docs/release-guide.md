@@ -9,7 +9,7 @@ A normal release needs no manual workflow run. The `Build` workflow has a `push`
 1. Make sure `main` is up to date and green.
 2. Bump the version and changelog:
    - `package.json` → `version`: plain semver, **no leading `v`** (`1.2.1`, not `v1.2.1`, not `1.2.1-beta`).
-   - `changelog.md` → add a section titled with the same version, e.g. `## 1.2.1`.
+   - `changelog.md` → add a `## 1.2.1` section covering **all** changes in this version — see [Writing the changelog](#writing-the-changelog).
 3. Commit and push to `main`:
    ```powershell
    git add package.json changelog.md
@@ -19,6 +19,18 @@ A normal release needs no manual workflow run. The `Build` workflow has a `push`
 4. The workflow detects the bump, runs the build matrix, and the `release` job publishes a GitHub Release tagged `1.2.1` with `latest.yml` and all installers attached.
 
 On next launch the app checks `releases/latest` for `branding.updateRepo`, sees the new version, and prompts users to update.
+
+## Writing the changelog
+
+Every version bump must ship a `changelog.md` section that captures **all** the changes in that version — it's the release notes, not optional boilerplate. The `release` job feeds that section to the GitHub Release body verbatim, and `scripts/updater.mjs` appends the download links to it.
+
+Compile it from everything merged since the previous release. Because PRs are squash-merged (one commit per change, with a conventional subject), the previous tag → `HEAD` log is a clean, one-line-per-change source:
+
+```powershell
+git log 1.2.0..HEAD --oneline   # replace 1.2.0 with the previous released version
+```
+
+Turn those lines into a readable `## 1.2.1` section grouped by type (Features / Fixes / …), dropping noise (merge and release-bump commits). Keep entries user-facing and terse, matching the existing changelog style.
 
 ## Build matrix
 
