@@ -6,6 +6,13 @@ const fs = require('fs')
 const path = require('path')
 const branding = require('./branding.json')
 
+// Spaces in a release asset's filename get replaced with dots by GitHub (the
+// spaced original survives only as the cosmetic asset "label"), which makes the
+// on-disk filename differ from the downloadable name and breaks naive download
+// links. Bake the dotted form into every artifact name up front so the file on
+// disk, the GitHub asset name, and the links in scripts/updater.mjs all agree.
+const assetProductName = branding.productName.replace(/ /g, '.')
+
 const nshPath = path.join(__dirname, 'build', 'nsis', 'branding.nsh')
 fs.writeFileSync(
   nshPath,
@@ -69,10 +76,10 @@ module.exports = {
   win: {
     icon: 'build/icon.ico',
     target: ['nsis', '7z'],
-    artifactName: '${productName}_${arch}-portable.${ext}'
+    artifactName: assetProductName + '_${arch}-portable.${ext}'
   },
   nsis: {
-    artifactName: '${productName}_${arch}-setup.${ext}',
+    artifactName: assetProductName + '_${arch}-setup.${ext}',
     installerIcon: 'build/installerIcon.ico',
     uninstallerIcon: 'build/icon.ico',
     uninstallDisplayName: '${productName}',
@@ -102,7 +109,7 @@ module.exports = {
           "Application requests access to the user's Downloads folder."
       }
     ],
-    artifactName: '${productName}_${arch}.${ext}'
+    artifactName: assetProductName + '_${arch}.${ext}'
   },
   pkg: {
     allowAnywhere: false,
@@ -119,7 +126,7 @@ module.exports = {
     target: ['deb', 'rpm', 'pacman'],
     maintainer: 'kirisame-meguru',
     category: 'Utility',
-    artifactName: '${productName}_${arch}.${ext}'
+    artifactName: assetProductName + '_${arch}.${ext}'
   },
   deb: {
     afterInstall: 'build/generated/linux/postinst'
@@ -129,7 +136,7 @@ module.exports = {
   },
   pacman: {
     afterInstall: 'build/generated/linux/postinst',
-    artifactName: '${productName}_${arch}.pkg.tar.xz'
+    artifactName: assetProductName + '_${arch}.pkg.tar.xz'
   },
   npmRebuild: true,
   publish: []
