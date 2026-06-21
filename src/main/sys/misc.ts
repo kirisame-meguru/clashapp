@@ -137,7 +137,16 @@ export function setNativeTheme(theme: 'system' | 'light' | 'dark'): void {
   nativeTheme.themeSource = theme
 }
 
-const elevateTaskXml = `<?xml version="1.0" encoding="UTF-16"?>
+// Built lazily, NOT as a module-level const: taskDir()/exePath() must be read at call
+// time. The const form froze them at import — which runs before index.ts's
+// app.setName/app.setPath('userData', productName) — so for forks where packageName
+// (Electron's default userData leaf) differs from productName beyond case, the baked
+// <Command> pointed at appData\<packageName>\tasks while the runner is actually copied
+// into appData\<productName>\tasks. runElevateTaskSync then rejected the mismatch and
+// silent elevation never fired. (Canonical app was masked: clashapp vs ClashApp collapse
+// to one folder on case-insensitive Windows.)
+function buildElevateTaskXml(): string {
+  return `<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <Triggers />
   <Principals>
@@ -173,10 +182,11 @@ const elevateTaskXml = `<?xml version="1.0" encoding="UTF-16"?>
   </Actions>
 </Task>
 `
+}
 
 export function createElevateTaskSync(): void {
   const taskFilePath = path.join(taskDir(), `${elevateTaskName}.xml`)
-  writeFileSync(taskFilePath, Buffer.from(`\ufeff${elevateTaskXml}`, 'utf-16le'))
+  writeFileSync(taskFilePath, Buffer.from(`\ufeff${buildElevateTaskXml()}`, 'utf-16le'))
   copyFileSync(
     path.join(resourcesFilesDir(), elevateTaskRunner),
     path.join(taskDir(), elevateTaskRunner)
