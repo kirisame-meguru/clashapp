@@ -70,7 +70,7 @@ These rules are load-bearing — follow them:
 
 - **Branches:** do everyday work on `dev`. Branch `fix/<slug>` or `feat/<slug>` off `dev` for each change. `main` is **release-only** — a version bump pushed to `main` triggers the release build, so never push casual work there. PRs are **always squash-merged** (one commit per change). Full model: [docs/branching-workflow.md](docs/branching-workflow.md).
 - **Committing:** when a unit of work is done, **write the commit message and commit immediately — do not ask "should I commit?"** Then ask the user: **"Should I push and create a pull-request?"** Message format: [docs/commit-messages.md](docs/commit-messages.md).
-- **Don't** change `appId` or `productName` casually — it breaks installs and auto-updates ([docs/release-guide.md](docs/release-guide.md)).
+- **`appId` / `productName`** define the app's identity — a fork or rebrand changes them on purpose ([docs/forking-and-rebranding.md](docs/forking-and-rebranding.md)). Only on an *established* app keep them stable between releases, since changing them there breaks existing users' installs and auto-updates.
 
 ## Documentation
 

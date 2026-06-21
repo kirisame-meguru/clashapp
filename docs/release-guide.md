@@ -80,7 +80,6 @@ If GitHub Actions is blocked (e.g. billing):
 
 ## Safe-update rules
 
-- Don't change `appId` or `productName` (in `branding.json`) — Windows would treat it as a different product, and install paths/names would shift.
 - Don't drop migrations or wipe the `userData` folder — it holds users' subscriptions and settings.
 - Publish only to `branding.updateRepo` (currently `kirisame-meguru/clashapp`) — the update check looks there specifically.
 - For public releases use a plain version (`1.2.1`), not a pre-release suffix.
