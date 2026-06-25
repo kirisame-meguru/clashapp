@@ -35,6 +35,7 @@ import { promisify } from 'util'
 import { mainWindow, showError } from '..'
 import path from 'path'
 import os from 'os'
+import { tunDeviceName } from '../../shared/branding'
 import { createWriteStream, existsSync } from 'fs'
 import { disableSysProxy, triggerSysProxy } from '../sys/sysproxy'
 import { getAxios } from './mihomoApi'
@@ -654,7 +655,7 @@ export async function startNetworkDetection(): Promise<void> {
     proxyMode = false
   } = await getAppConfig()
   const writeSysProxy = proxyMode && sysProxy.enable
-  const { tun: { device = process.platform === 'darwin' ? undefined : 'mihomo' } = {} } =
+  const { tun: { device = process.platform === 'darwin' ? undefined : tunDeviceName } = {} } =
     await getControledMihomoConfig()
   if (networkDetectionTimer) {
     clearInterval(networkDetectionTimer)

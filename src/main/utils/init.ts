@@ -38,7 +38,7 @@ import { startSSIDCheck } from '../sys/ssid'
 import { startNetworkDetection } from '../core/manager'
 import { initKeyManager } from '../service/manager'
 import { migrateFromOldApp } from './migration'
-import { protocolScheme } from '../../shared/branding'
+import { protocolScheme, tunDeviceName, mixedPort, fakeIpRange } from '../../shared/branding'
 
 async function initDirs(): Promise<void> {
   if (!existsSync(dataDir())) {
@@ -141,6 +141,28 @@ async function migration(): Promise<void> {
 
   if (appConfig.controlTun === false && mihomoConfig.tun?.enable) {
     mihomoConfigPatch.tun = { enable: false }
+  }
+
+  // Re-point fork-shared VPN resources to this fork's branded identity. Every fork used to
+  // ship the same hard-coded defaults (TUN device "mihomo", mixed-port 7897, fake-ip
+  // 198.18.0.1/16); two such forks collide — the one started second silently piggybacks the
+  // first's TUN adapter / proxy port. Only rewrite a value that still equals the old shared
+  // default, never one the user customized. No-op on upstream (its branded values equal the
+  // old defaults) and on a fork's fresh install (already written with branded values).
+  const LEGACY_TUN_DEVICE = 'mihomo'
+  const LEGACY_MIXED_PORT = 7897
+  const LEGACY_FAKE_IP_RANGE = '198.18.0.1/16'
+  if (mihomoConfig.tun?.device === LEGACY_TUN_DEVICE && tunDeviceName !== LEGACY_TUN_DEVICE) {
+    mihomoConfigPatch.tun = { ...(mihomoConfigPatch.tun ?? {}), device: tunDeviceName }
+  }
+  if (mihomoConfig['mixed-port'] === LEGACY_MIXED_PORT && mixedPort !== LEGACY_MIXED_PORT) {
+    mihomoConfigPatch['mixed-port'] = mixedPort
+  }
+  if (
+    mihomoConfig.dns?.['fake-ip-range'] === LEGACY_FAKE_IP_RANGE &&
+    fakeIpRange !== LEGACY_FAKE_IP_RANGE
+  ) {
+    mihomoConfigPatch.dns = { ...(mihomoConfigPatch.dns ?? {}), 'fake-ip-range': fakeIpRange }
   }
 
   for (const key in defaultControledMihomoConfig) {

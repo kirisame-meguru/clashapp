@@ -1,3 +1,5 @@
+import { tunDeviceName, mixedPort, fakeIpRange } from '../../shared/branding'
+
 export const defaultConfig: AppConfig = {
   core: 'mihomo',
   silentStart: false,
@@ -41,7 +43,7 @@ export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
   },
   secret: '',
   mode: 'rule',
-  'mixed-port': 7897,
+  'mixed-port': mixedPort,
   'socks-port': 0,
   port: 0,
   'redir-port': 0,
@@ -60,7 +62,7 @@ export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
   'skip-auth-prefixes': ['127.0.0.1/32'],
   tun: {
     enable: false,
-    device: process.platform === 'darwin' ? undefined : 'mihomo',
+    device: process.platform === 'darwin' ? undefined : tunDeviceName,
     stack: 'mixed',
     'auto-route': true,
     'auto-redirect': false,
@@ -92,7 +94,7 @@ export const defaultControledMihomoConfig: Partial<MihomoConfig> = {
     ipv6: true,
     'respect-rules': false,
     'enhanced-mode': 'fake-ip',
-    'fake-ip-range': '198.18.0.1/16',
+    'fake-ip-range': fakeIpRange,
     'fake-ip-filter': ['*', '+.lan', '+.local', 'time.*.com', 'ntp.*.com', '+.market.xiaomi.com'],
     'use-hosts': false,
     'use-system-hosts': false,
