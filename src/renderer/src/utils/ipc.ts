@@ -86,6 +86,14 @@ export async function mihomoUpdateRuleProviders(name: string): Promise<void> {
   )
 }
 
+export async function probeAndUpdateRuleProviders(): Promise<{
+  updated: string[]
+  checked: number
+  failed: string[]
+}> {
+  return ipcErrorWrapper(await window.electron.ipcRenderer.invoke('probeAndUpdateRuleProviders'))
+}
+
 export async function mihomoChangeProxy(
   group: string,
   proxy: string

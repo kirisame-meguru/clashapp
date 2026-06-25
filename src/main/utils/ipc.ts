@@ -44,6 +44,7 @@ import {
   setProfileConfig,
   convertMrsRuleset
 } from '../config'
+import { probeAndUpdateRuleProviders } from '../core/ruleProviderProbe'
 import {
   manualGrantCorePermition,
   quitWithoutCore,
@@ -184,6 +185,7 @@ export function registerIpcMainHandlers(): void {
   ipcMain.handle('mihomoUpdateRuleProviders', (_e, name) =>
     ipcErrorWrapper(mihomoUpdateRuleProviders)(name)
   )
+  ipcMain.handle('probeAndUpdateRuleProviders', ipcErrorWrapper(probeAndUpdateRuleProviders))
   ipcMain.handle('mihomoChangeProxy', (_e, group, proxy) =>
     ipcErrorWrapper(mihomoChangeProxy)(group, proxy)
   )

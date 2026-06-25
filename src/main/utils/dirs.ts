@@ -91,7 +91,9 @@ export function mihomoCorePath(core: string): string {
   if (core === 'system') {
     const sysPath = systemCorePath()
     if (!sysPath || !existsSync(sysPath)) {
-      const errorMsg = sysPath ? `${t('error.systemCorePathInvalid')}: ${sysPath}` : t('error.systemCorePathNotSet')
+      const errorMsg = sysPath
+        ? `${t('error.systemCorePathInvalid')}: ${sysPath}`
+        : t('error.systemCorePathNotSet')
       throw new Error(errorMsg)
     }
     return sysPath
@@ -165,6 +167,15 @@ export function rulesDir(): string {
 
 export function rulePath(id: string): string {
   return path.join(rulesDir(), `${id}.yaml`)
+}
+
+export function appCacheDbPath(): string {
+  return path.join(dataDir(), 'app-cache.db')
+}
+
+// retained only for the one-time JSON→SQLite import in ../utils/db.ts
+export function ruleProviderCachePath(): string {
+  return path.join(dataDir(), 'rule-provider-cache.json')
 }
 
 function hasCommand(command: string): boolean {

@@ -24,6 +24,7 @@ import {
 import { initProfileUpdater } from './core/profileUpdater'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { controledMihomoConfigPath, exePath, taskDir } from './utils/dirs'
+import { closeDb } from './utils/db'
 import { showFloatingWindow } from './resolve/floatingWindow'
 import { getAppConfigSync } from './config/app'
 import { t } from './utils/i18n'
@@ -333,6 +334,7 @@ app.on('before-quit', async (e) => {
       }
       triggerSysProxy(false, false)
       await stopCore()
+      closeDb()
       app.exit()
       return
     }
@@ -348,6 +350,7 @@ app.on('before-quit', async (e) => {
       }
       triggerSysProxy(false, false)
       await stopCore()
+      closeDb()
       app.exit()
     }
   } else if (notQuitDialog) {
@@ -358,6 +361,7 @@ app.on('before-quit', async (e) => {
     }
     triggerSysProxy(false, false)
     await stopCore()
+    closeDb()
     app.exit()
   }
 })
@@ -369,8 +373,14 @@ powerMonitor.on('shutdown', async () => {
   }
   triggerSysProxy(false, false)
   await stopCore()
+  closeDb()
   app.exit()
 })
+
+// Belt-and-suspenders WAL checkpoint for any graceful-quit path that doesn't go
+// through the app.exit() calls above (which bypass will-quit). closeDb() is a
+// no-op once the DB is already closed, so double-closing is harmless.
+app.on('will-quit', () => closeDb())
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

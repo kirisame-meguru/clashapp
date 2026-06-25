@@ -1,4 +1,10 @@
-import { mihomoProfileWorkDir, mihomoWorkDir, profileConfigPath, profilePath, rulePath } from '../utils/dirs'
+import {
+  mihomoProfileWorkDir,
+  mihomoWorkDir,
+  profileConfigPath,
+  profilePath,
+  rulePath
+} from '../utils/dirs'
 import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { restartCore } from '../core/manager'
 import { getRuntimeConfig } from '../core/factory'
@@ -38,7 +44,8 @@ export async function setProfileConfig(config: ProfileConfig): Promise<void> {
 
 export async function getProfileItem(id: string | undefined): Promise<ProfileItem | undefined> {
   const { items } = await getProfileConfig()
-  if (!id || id === 'default') return { id: 'default', type: 'local', name: t('ui.blankSubscription') }
+  if (!id || id === 'default')
+    return { id: 'default', type: 'local', name: t('ui.blankSubscription') }
   return items?.find((item) => item.id === id)
 }
 
@@ -79,7 +86,9 @@ export async function updateProfileItem(item: ProfileItem): Promise<void> {
 export async function addProfileItem(item: Partial<ProfileItem>): Promise<boolean> {
   if (item.url && item.type === 'remote') {
     const config = await getProfileConfig()
-    const duplicate = config.items?.find((existing) => existing.url === item.url && existing.id !== item.id)
+    const duplicate = config.items?.find(
+      (existing) => existing.url === item.url && existing.id !== item.id
+    )
     if (duplicate) {
       throw new Error(t('error.duplicateProfile'))
     }
@@ -113,7 +122,29 @@ export async function addProfileItem(item: Partial<ProfileItem>): Promise<boolea
     await patchAppConfig({ showTrafficUsage: newItem.showUsageStats })
     mainWindow?.webContents.send('appConfigUpdated')
   }
-  return changed
+
+  // Gate 2: when REFRESHING the active subscription, the core just hot-reloaded but
+  // kept its already-cached rule-set files. Probe the profile's HTTP rule-providers
+  // and re-pull only those whose remote actually changed. Awaited (not fire-and-forget)
+  // so the per-provider "Updating … list" steps stream into the home status log, which
+  // only collects progress while the surrounding add/refresh action is in flight. Only
+  // for an update of the active profile (not first add — that just baselines on the next
+  // refresh). Never let a probe failure fail the subscription update. Dynamic import
+  // avoids the profile <-> probe module cycle.
+  let providersUpdated = false
+  if (isExisting && config.current === newItem.id) {
+    try {
+      const { probeAndUpdateRuleProviders } = await import('../core/ruleProviderProbe')
+      const { updated } = await probeAndUpdateRuleProviders()
+      providersUpdated = updated.length > 0
+    } catch {
+      // ignore — rule-provider refresh is best-effort
+    }
+  }
+  // Report "updated" (vs "already up to date") when EITHER the subscription body
+  // changed OR at least one rule-provider was re-pulled — a rule-set refresh with an
+  // unchanged subscription is still a meaningful update from the user's perspective.
+  return changed || providersUpdated
 }
 
 async function enforceGlobalModeRestriction(id: string): Promise<void> {
@@ -165,7 +196,13 @@ export async function removeProfileItem(id: string): Promise<void> {
 
 export async function getCurrentProfileItem(): Promise<ProfileItem> {
   const { current } = await getProfileConfig()
-  return (await getProfileItem(current)) || { id: 'default', type: 'local', name: t('ui.blankSubscription') }
+  return (
+    (await getProfileItem(current)) || {
+      id: 'default',
+      type: 'local',
+      name: t('ui.blankSubscription')
+    }
+  )
 }
 
 async function downloadLogoAsBase64(
@@ -249,7 +286,6 @@ export async function createProfile(
         throw error
       }
 
-
       const data = res.data
       const headers = res.headers
       const contentType = String(headers['content-type'] ?? '').toLowerCase()
@@ -311,9 +347,7 @@ export async function createProfile(
       if (userinfoKey) {
         newItem.extra = parseSubinfo(headers[userinfoKey])
       }
-      const logoKey = Object.keys(headers).find((k) =>
-        k.toLowerCase().endsWith('profile-logo')
-      )
+      const logoKey = Object.keys(headers).find((k) => k.toLowerCase().endsWith('profile-logo'))
       if (logoKey) {
         const logoUrl = headers[logoKey]
         const proxyConfig =
@@ -351,9 +385,7 @@ export async function createProfile(
       if (unsupportedCfgWarnKey) {
         newItem.unsupportedCfgWarn = headers[unsupportedCfgWarnKey].toLowerCase() === 'true'
       }
-      const announceKey = Object.keys(headers).find((k) =>
-        k.toLowerCase().endsWith('announce')
-      )
+      const announceKey = Object.keys(headers).find((k) => k.toLowerCase().endsWith('announce'))
       if (announceKey) {
         const announceValue = headers[announceKey]
         const decoded = announceValue.startsWith('base64:')
@@ -361,9 +393,7 @@ export async function createProfile(
           : announceValue
         newItem.announce = decoded.replace(/\\n/g, '\n')
       }
-      const customCssKey = Object.keys(headers).find((k) =>
-        k.toLowerCase().endsWith('custom-css')
-      )
+      const customCssKey = Object.keys(headers).find((k) => k.toLowerCase().endsWith('custom-css'))
       if (customCssKey) {
         const cssUrl = headers[customCssKey]
         try {
@@ -372,7 +402,11 @@ export async function createProfile(
               ? { protocol: 'http', host: '127.0.0.1', port: mixedPort }
               : undefined
           const existingProfile = await getProfileItem(id)
-          newItem.customCss = await downloadCustomCss(cssUrl, proxyConfig, existingProfile?.customCss)
+          newItem.customCss = await downloadCustomCss(
+            cssUrl,
+            proxyConfig,
+            existingProfile?.customCss
+          )
         } catch {
           // ignore css download failure
         }

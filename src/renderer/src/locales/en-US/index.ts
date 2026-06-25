@@ -183,6 +183,7 @@ export default {
       fetchingSubscription: 'Fetching subscription…',
       verifyingSubscription: 'Verifying subscription…',
       savingProfile: 'Saving profile…',
+      updatingRuleProvider: 'Updating {{name}} list…',
       connected: 'Connected!',
       disconnected: 'Disconnected!',
       updated: 'Subscription updated!',
@@ -912,6 +913,9 @@ export default {
     edit: 'Edit',
     view: 'View',
     updateAll: 'Update All',
+    updateChanged: 'Update Changed',
+    updateChangedDone: 'Updated {{count}} rule provider(s)',
+    updateChangedNone: 'All rule providers are up to date',
     updateFailed: '{{name}} update failed\n{{error}}'
   },
 

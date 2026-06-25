@@ -1,8 +1,10 @@
 import {
   mihomoRuleProviders,
   mihomoUpdateRuleProviders,
+  probeAndUpdateRuleProviders,
   getRuntimeConfig
 } from '@renderer/utils/ipc'
+import { toast } from 'sonner'
 import { subscribeCoreStarted } from '@renderer/store/core-lifecycle-store'
 import { getHash } from '@renderer/utils/hash'
 import Viewer from './viewer'
@@ -68,6 +70,27 @@ const RuleProvider: React.FC = () => {
     })
   }, [data])
   const [updating, setUpdating] = useState(Array(providers.length).fill(false))
+  const [checkingChanged, setCheckingChanged] = useState(false)
+
+  // Cheap path: probe each HTTP provider's source and re-pull only those that changed.
+  const onUpdateChanged = async (): Promise<void> => {
+    setCheckingChanged(true)
+    try {
+      const { updated } = await probeAndUpdateRuleProviders()
+      if (updated.length > 0) {
+        toast.success(t('resources.updateChangedDone', { count: updated.length }))
+        mutate()
+      } else {
+        toast.info(t('resources.updateChangedNone'))
+      }
+    } catch (e) {
+      toast.error(
+        t('resources.updateFailed', { name: t('resources.ruleProvider'), error: String(e) })
+      )
+    } finally {
+      setCheckingChanged(false)
+    }
+  }
 
   const onUpdate = async (name: string, index: number): Promise<void> => {
     setUpdating((prev) => {
@@ -115,33 +138,33 @@ const RuleProvider: React.FC = () => {
         />
       )}
       <SettingItem title={t('resources.ruleProvider')} divider>
-        <Button
-          size="sm"
-          onClick={() => {
-            providers.forEach((provider, index) => {
-              onUpdate(provider.name, index)
-            })
-          }}
-        >
-          {t('resources.updateAll')}
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" disabled={checkingChanged} onClick={onUpdateChanged}>
+            {checkingChanged && <RefreshCcw className="animate-spin" />}
+            {t('resources.updateChanged')}
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              providers.forEach((provider, index) => {
+                onUpdate(provider.name, index)
+              })
+            }}
+          >
+            {t('resources.updateAll')}
+          </Button>
+        </div>
       </SettingItem>
       {providers.map((provider, index) => (
         <Fragment key={provider.name}>
           <SettingItem
             title={provider.name}
-            actions={
-              <Badge className="ml-2">
-                {provider.ruleCount}
-              </Badge>
-            }
+            actions={<Badge className="ml-2">{provider.ruleCount}</Badge>}
           >
             <div className="flex h-8 leading-8 text-foreground-500">
               <div>{dayjs(provider.updatedAt).fromNow()}</div>
               <Button
-                title={
-                  provider.vehicleType == 'File' ? t('resources.edit') : t('resources.view')
-                }
+                title={provider.vehicleType == 'File' ? t('resources.edit') : t('resources.view')}
                 className="ml-2"
                 size="icon-sm"
                 variant="ghost"

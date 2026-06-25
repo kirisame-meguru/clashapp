@@ -257,6 +257,7 @@ export default {
       fetchingSubscription: '正在获取订阅…',
       verifyingSubscription: '正在校验订阅…',
       savingProfile: '正在保存配置…',
+      updatingRuleProvider: '正在更新 {{name}} 列表…',
       connected: '已连接！',
       disconnected: '已断开！',
       updated: '订阅已更新！',
@@ -968,6 +969,9 @@ export default {
     edit: '编辑',
     view: '查看',
     updateAll: '更新全部',
+    updateChanged: '更新变更',
+    updateChangedDone: '已更新 {{count}} 个规则集合',
+    updateChangedNone: '所有规则集合均为最新',
     updateFailed: '{{name}} 更新失败\n{{error}}'
   },
 

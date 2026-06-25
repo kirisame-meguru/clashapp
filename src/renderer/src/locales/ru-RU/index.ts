@@ -184,6 +184,7 @@ export default {
       fetchingSubscription: 'Загрузка подписки…',
       verifyingSubscription: 'Проверка подписки…',
       savingProfile: 'Сохранение профиля…',
+      updatingRuleProvider: 'Обновление списка {{name}}…',
       connected: 'Подключено!',
       disconnected: 'Отключено!',
       updated: 'Подписка обновлена!',
@@ -912,6 +913,9 @@ export default {
     edit: 'Редактировать',
     view: 'Просмотр',
     updateAll: 'Обновить все',
+    updateChanged: 'Обновить изменённые',
+    updateChangedDone: 'Обновлено провайдеров правил: {{count}}',
+    updateChangedNone: 'Все провайдеры правил актуальны',
     updateFailed: 'Не удалось обновить {{name}}\n{{error}}'
   },
 
