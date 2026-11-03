@@ -202,7 +202,8 @@ jobs:
       # vars to $GITHUB_ENV exclusively in the signed case — setting them to empty
       # strings would make electron-builder resolve an empty CSC_LINK to the project
       # dir and fail with "<projectDir> not a file". For unsigned builds we instead
-      # set CSC_IDENTITY_AUTO_DISCOVERY=false so signing is cleanly skipped.
+      # set CSC_IDENTITY_AUTO_DISCOVERY=false to skip Developer ID discovery.
+      # Ad-hoc signing can still apply; it needs the library-validation exception.
       - name: Configure Apple Signing
         if: runner.os == 'macOS'
         shell: bash

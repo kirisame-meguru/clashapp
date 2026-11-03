@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fixes
+
+- macOS: allow ad-hoc-signed builds to load the bundled Electron framework under Hardened Runtime instead of aborting at launch with a Team ID mismatch
+
 ## 1.1.4
 
 ### Fixes
